@@ -1,3 +1,9 @@
+mod neuron;
+mod rl;
+
+pub use neuron::*;
+pub use rl::*;
+
 #[cfg(test)]
 mod tests {
     #[test]
