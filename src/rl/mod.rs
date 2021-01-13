@@ -1,8 +1,10 @@
 mod agent;
+mod environment;
 mod environments;
 mod learners;
 
 pub use agent::*;
+pub use environment::*;
 pub use environments::*;
 pub use learners::*;
 
