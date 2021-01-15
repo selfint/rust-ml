@@ -1,7 +1,7 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
+use ndarray::prelude::*;
+
+use crate::environment::Action;
+
+pub trait Agent {
+    fn act(&self, state: &Array1<f32>) -> Action;
 }

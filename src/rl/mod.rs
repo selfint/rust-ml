@@ -1,12 +1,8 @@
-mod agent;
-mod environment;
-mod environments;
-mod learners;
-
-pub use agent::*;
-pub use environment::*;
-pub use environments::*;
-pub use learners::*;
+pub mod agent;
+pub mod environment;
+pub mod environments;
+pub mod learner;
+pub mod learners;
 
 #[cfg(test)]
 mod tests {
