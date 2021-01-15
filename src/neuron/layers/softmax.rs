@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
-use crate::layer::{FeedForwardLayer, Layer};
+use crate::layer::{FeedForwardLayer, LayerTrait};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct SoftmaxLayer {
@@ -24,7 +24,7 @@ impl SoftmaxLayer {
     }
 }
 
-impl Layer for SoftmaxLayer {
+impl LayerTrait for SoftmaxLayer {
     fn input_size(&self) -> usize {
         self.input_size
     }
@@ -47,15 +47,6 @@ impl Layer for SoftmaxLayer {
 
     fn get_biases_mut(&mut self) -> &mut Array1<f32> {
         &mut self.biases
-    }
-
-    fn from_weights_and_biases(weights: Array2<f32>, biases: Array1<f32>) -> Self {
-        Self {
-            input_size: weights.ncols(),
-            output_size: weights.nrows(),
-            weights,
-            biases,
-        }
     }
 }
 

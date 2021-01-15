@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
-use crate::layer::{FeedForwardLayer, Layer};
+use crate::layer::{FeedForwardLayer, LayerTrait};
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct ReLuLayer {
@@ -24,7 +24,7 @@ impl ReLuLayer {
     }
 }
 
-impl Layer for ReLuLayer {
+impl LayerTrait for ReLuLayer {
     fn input_size(&self) -> usize {
         self.input_size
     }
@@ -47,16 +47,6 @@ impl Layer for ReLuLayer {
 
     fn get_biases_mut(&mut self) -> &mut Array1<f32> {
         &mut self.biases
-    }
-
-    fn from_weights_and_biases(weights: Array2<f32>, biases: Array1<f32>) -> Self {
-        let (input_size, output_size) = (weights.shape()[1], weights.shape()[0]);
-        Self {
-            input_size,
-            output_size,
-            weights,
-            biases,
-        }
     }
 }
 

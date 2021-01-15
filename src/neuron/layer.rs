@@ -1,17 +1,16 @@
 use ndarray::prelude::*;
 use std::fmt::Debug;
 
-pub trait Layer: Clone + PartialEq + Debug + Sized {
+pub trait LayerTrait: Debug {
     fn input_size(&self) -> usize;
     fn output_size(&self) -> usize;
     fn get_weights(&self) -> &Array2<f32>;
     fn get_biases(&self) -> &Array1<f32>;
     fn get_weights_mut(&mut self) -> &mut Array2<f32>;
     fn get_biases_mut(&mut self) -> &mut Array1<f32>;
-    fn from_weights_and_biases(weights: Array2<f32>, biases: Array1<f32>) -> Self;
 }
 
-pub trait FeedForwardLayer: Layer {
+pub trait FeedForwardLayer: LayerTrait {
     fn activate(&self, input: &Array1<f32>) -> Array1<f32>;
     fn forward(&self, input: &Array1<f32>) -> Array1<f32> {
         self.activate(&(self.get_weights().dot(input) + self.get_biases()))
@@ -35,16 +34,5 @@ mod tests {
         let layer = ReLuLayer::new(3, 2);
         assert_eq!(layer.input_size(), 2);
         assert_eq!(layer.output_size(), 3);
-    }
-
-    #[test]
-    fn test_layer_from_weights_and_biases() {
-        let weights = arr2(&[[1., 0.], [0., 1.]]);
-        let biases = arr1(&[1., 0.]);
-
-        let layer = ReLuLayer::from_weights_and_biases(weights.clone(), biases.clone());
-
-        assert_eq!(layer.get_weights(), &weights);
-        assert_eq!(layer.get_biases(), &biases);
     }
 }
