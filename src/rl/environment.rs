@@ -5,7 +5,7 @@ pub enum Action {
     Continuous(Array1<f32>),
 }
 
-pub trait Environment {
+pub trait Environment: Clone {
     fn reset(&mut self);
     fn observe(&self) -> Array1<f32>;
     fn step(&mut self, action: &Action) -> f32;
