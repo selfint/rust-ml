@@ -1,15 +1,18 @@
 # Rust-ML
 
-A simple but usable complete machine learning library with written in Rust.
+A simple machine learning library written in Rust, for supervised, unsupervised and 
+reinforcement learning.
 
 ## Contents
 
-- **Neuron**: A simple network library.
+- **Neuron**: A simple neural network library.
 - **RL**: Implementations of RL algorithms and training environments.
 
 ## Neuron
 
 CPU based neural network library implemented using [ndarray](https://github.com/rust-ndarray/ndarray).
+
+
 It won't outperform Tensorflow but it should still be very fast.
 
 ## RL
