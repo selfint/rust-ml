@@ -6,7 +6,8 @@ use std::cmp;
 use std::convert::TryInto;
 use std::fmt::Display;
 
-struct JumpEnvironment {
+#[derive(Clone)]
+pub struct JumpEnvironment {
     size: usize,
     player: (usize, usize),
     walls: Vec<(usize, usize)>,
@@ -49,11 +50,9 @@ impl JumpEnvironment {
     fn update_player(&mut self, action: &Action) {
         let player_on_ground = self.player.1 == self.ground + 1;
 
-        eprintln!("player_on_ground={:?}", player_on_ground);
         match player_on_ground {
             true => {
                 if let Action::Discrete(a) = action {
-                    eprintln!("action={:?}", a);
                     match *a {
                         1 => self.player_vel = 2,
                         _ => self.player_vel = 0,
