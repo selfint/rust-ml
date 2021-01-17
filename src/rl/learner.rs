@@ -1,28 +1,12 @@
-use ndarray::prelude::*;
+use std::collections::HashMap;
 
-use crate::environment::Action;
-use crate::rl::agent::Agent;
+use crate::environment::Environment;
 
-/// learner that needs more at least one agent to learn
-pub trait MultiLearner<A: Agent> {
-    fn learn_multi(
+pub trait Learner {
+    fn master<E: Environment>(
         &mut self,
-        agents: &[&mut A],
-        state: &[&Array1<f32>],
-        action: &[&Action],
-        reward: &[&f32],
-        new_state: &[&Array1<f32>],
-    );
-}
-
-/// learner that needs one agent to learn
-pub trait SingleLearner<A: Agent> {
-    fn learn_single(
-        &mut self,
-        agent: &mut A,
-        state: &Array1<f32>,
-        action: &Action,
-        reward: &f32,
-        new_state: &Array1<f32>,
+        env: &E,
+        epochs: usize,
+        params: Option<&HashMap<&str, f32>>,
     );
 }

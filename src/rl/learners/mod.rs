@@ -1,3 +1,5 @@
+pub mod neuro_evolution;
+
 #[cfg(test)]
 mod tests {
     #[test]
