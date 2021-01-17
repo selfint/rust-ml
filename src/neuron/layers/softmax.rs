@@ -52,8 +52,7 @@ impl LayerTrait for SoftmaxLayer {
 
 impl FeedForwardLayer for SoftmaxLayer {
     fn activate(&self, input: &Array1<f32>) -> Array1<f32> {
-        let logits: Array1<f32> = self.weights.dot(input) + &self.biases;
-        let exponents = logits.map(|&l| f32::exp(l));
+        let exponents = input.map(|&l| f32::exp(l));
         let exponent_sum = exponents.sum();
         let softmax = exponents / exponent_sum;
 

@@ -52,6 +52,6 @@ impl LayerTrait for SigmoidLayer {
 
 impl FeedForwardLayer for SigmoidLayer {
     fn activate(&self, input: &Array1<f32>) -> Array1<f32> {
-        (self.weights.dot(input) + &self.biases).map(|&x| if x > 0. { x } else { 0. })
+        input.map(|&x| if x > 0. { x } else { 0. })
     }
 }
