@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::{thread, time};
 
 use rust_ml::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
@@ -23,24 +22,20 @@ fn main() {
     ]);
 
     // build agent with network
-    let agent = NetworkAgent::new(Box::new(network));
-
-    // set learner parameters
-    let mut params = HashMap::with_capacity(2);
-    params.insert("agent_amount", Param::Usize(20));
-    params.insert("mutation_rate", Param::Float(0.01));
-
-    let mut learner = NeuroEvolutionLearner::new(agent, Some(&params));
+    let mut agent = NetworkAgent::new(Box::new(network));
 
     // train learner
     let epochs = 50;
-    let trained_agent = learner.master(&env, epochs, true);
+    let agent_amount = 20;
+    let mutation_rate = 0.01;
+    let mut learner = NeuroEvolutionLearner::new(agent_amount, mutation_rate);
+    learner.train(&mut agent, &env, epochs, true);
 
     // show trained agent
     let mut env = JumpEnvironment::new(env_size);
     let mut score = 0.;
     while !env.is_done() {
-        let action = trained_agent.act(&env.observe());
+        let action = agent.act(&env.observe());
         score += env.step(&action);
 
         // reset cursor position
