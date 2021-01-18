@@ -41,12 +41,23 @@ impl Network for FeedForwardNetwork {
     fn get_layers_mut(&mut self) -> &mut Vec<Box<dyn LayerTrait>> {
         &mut self.layers
     }
+
+    fn get_weights_mut(&mut self) -> Vec<&mut Array2<f32>> {
+        self.layers
+            .iter_mut()
+            .map(|l| l.get_weights_mut())
+            .collect()
+    }
+
+    fn get_biases_mut(&mut self) -> Vec<&mut Array1<f32>> {
+        self.layers.iter_mut().map(|l| l.get_biases_mut()).collect()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
+    use crate::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
 
     #[test]
     fn test_network_predict() {

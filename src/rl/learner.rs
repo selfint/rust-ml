@@ -1,12 +1,10 @@
 use std::collections::HashMap;
 
-use crate::environment::Environment;
+use crate::rl::agent::Agent;
+use crate::rl::environment::Environment;
+use crate::rl::Param;
 
-pub trait Learner {
-    fn master<E: Environment>(
-        &mut self,
-        env: &E,
-        epochs: usize,
-        params: Option<&HashMap<&str, f32>>,
-    );
+pub trait Learner<A: Agent> {
+    fn new(agent: A, params: Option<&HashMap<&str, Param>>) -> Self;
+    fn master<E: Environment>(&mut self, env: &E, epochs: usize, verbose: bool) -> A;
 }

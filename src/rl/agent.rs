@@ -1,7 +1,5 @@
-use ndarray::prelude::*;
+use crate::rl::{Action, State};
 
-use crate::environment::Action;
-
-pub trait Agent {
-    fn act(&self, state: &Array1<f32>) -> Action;
+pub trait Agent: Clone {
+    fn act(&self, state: &State) -> Action;
 }

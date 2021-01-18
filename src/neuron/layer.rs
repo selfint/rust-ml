@@ -37,7 +37,7 @@ impl Clone for Box<dyn LayerTrait> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::layers::relu::ReLuLayer;
+    use crate::neuron::layers::relu::ReLuLayer;
 
     #[test]
     fn test_relu_layer() {

@@ -1,5 +1,5 @@
-use crate::rl::environment::Action;
 use crate::rl::environment::Environment;
+use crate::rl::Action;
 use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use std::cmp;
@@ -159,8 +159,8 @@ impl Environment for JumpEnvironment {
         200.
     }
 
-    fn action_space(&self) -> (Action, Action) {
-        (Action::Discrete(0), Action::Discrete(1))
+    fn action_space(&self) -> usize {
+        2
     }
 
     fn observation_space(&self) -> usize {
