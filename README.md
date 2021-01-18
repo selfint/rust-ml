@@ -7,13 +7,15 @@ reinforcement learning.
 
 - **Neuron**: A simple neural network library.
 - **RL**: Implementations of RL algorithms and training environments.
+- **Examples**: Solving classic ML problems using `rust-ml` (`--release` recommended)
 
 ## Neuron
 
 CPU based neural network library implemented using [ndarray](https://github.com/rust-ndarray/ndarray).
 
 
-It won't outperform Tensorflow but it should still be very fast.
+It won't outperform Tensorflow but it should still be very fast. Especially when compiled
+in `--release` mode!
 
 ## RL
 
