@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
-use crate::layer::{FeedForwardLayer, LayerTrait};
+use crate::layer::LayerTrait;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct SoftmaxLayer {
@@ -48,9 +48,7 @@ impl LayerTrait for SoftmaxLayer {
     fn get_biases_mut(&mut self) -> &mut Array1<f32> {
         &mut self.biases
     }
-}
 
-impl FeedForwardLayer for SoftmaxLayer {
     fn activate(&self, input: &Array1<f32>) -> Array1<f32> {
         let exponents = input.map(|&l| f32::exp(l));
         let exponent_sum = exponents.sum();
