@@ -20,7 +20,7 @@ It won't outperform Tensorflow but it should still be very fast.
 Reinforcement learning library containing Agents, Learners and Environments. 
 
 
-An **agent** interacts with and **environment** and learns using a **learner**.
+A **Learner** teaches an **Agent** to master an **Environment**.
 All agents, learners and environments are designed to be easily swappable. For
 example a QAgent can interact with a Jump environment and learn using a QLearner,
 and that same agent can interact with a Bird environment and learn using a
