@@ -156,21 +156,15 @@ impl<A: Evolve + Agent> Learner<A> for NeuroEvolutionLearner<A> {
             // evaluate each agent
             for (i, (agent, environment)) in agents.iter().zip(envs.iter_mut()).enumerate() {
                 let mut score = 0.;
-                let runs = 2;
+                environment.reset();
 
-                for _ in 0..runs {
-                    let mut run_score = 0.;
-                    environment.reset();
-
-                    while !environment.is_done() && run_score < max_reward {
-                        let action = agent.act(&environment.observe());
-                        let reward = environment.step(&action);
-                        run_score += reward;
-                    }
-
-                    score += run_score;
+                while !environment.is_done() && score < max_reward {
+                    let action = agent.act(&environment.observe());
+                    let reward = environment.step(&action);
+                    score += reward;
                 }
-                scores[i] = score / runs as f32;
+
+                scores[i] = score;
             }
 
             if verbose {
