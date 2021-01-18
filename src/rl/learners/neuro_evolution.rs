@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use ndarray_rand::rand_distr::WeightedIndex;
@@ -71,15 +69,25 @@ impl Evolve for NetworkAgent {
     }
 }
 
-pub struct NeuroEvolutionLearner<A: Evolve + Agent> {
-    agent: A,
+pub struct NeuroEvolutionLearner {
     agent_amount: usize,
     mutation_rate: f64,
 }
 
-impl<A: Evolve + Agent> NeuroEvolutionLearner<A> {
+impl NeuroEvolutionLearner {
+    pub fn new(agent_amount: usize, mutation_rate: f64) -> Self {
+        Self {
+            agent_amount,
+            mutation_rate,
+        }
+    }
+
     /// use scores to generate new generation using survival of the fittest
-    fn new_generation(&mut self, old_generation: Vec<&A>, scores: &Array1<Reward>) -> Vec<A> {
+    fn new_generation<A: Evolve + Agent>(
+        &mut self,
+        old_generation: Vec<&A>,
+        scores: &Array1<Reward>,
+    ) -> Vec<A> {
         assert_eq!(
             scores.len(),
             self.agent_amount,
@@ -111,40 +119,17 @@ impl<A: Evolve + Agent> NeuroEvolutionLearner<A> {
     }
 }
 
-impl<A: Evolve + Agent> Learner<A> for NeuroEvolutionLearner<A> {
-    fn new(agent: A, params: Option<&HashMap<&str, Param>>) -> Self {
-        let params = params.expect("expected Some params, got None");
-
-        // parse params
-        let agent_amount = if let Param::Usize(agent_amount) = *params
-            .get("agent_amount")
-            .expect("expected 'agent_amount' key")
-        {
-            agent_amount
-        } else {
-            panic!("expected agent_amount to be Usize")
-        };
-
-        let mutation_rate = if let Param::Float(mutation_rate) = *params
-            .get("mutation_rate")
-            .expect("expected 'mutation_rate' key")
-        {
-            mutation_rate as f64
-        } else {
-            panic!("expected mutation_rate to be Float")
-        };
-
-        Self {
-            agent,
-            agent_amount,
-            mutation_rate,
-        }
-    }
-
-    fn master<E: Environment>(&mut self, env: &E, epochs: usize, verbose: bool) -> A {
+impl<A: Evolve + Agent> Learner<A> for NeuroEvolutionLearner {
+    fn train<'a, E: Environment>(
+        &mut self,
+        agent: &'a mut A,
+        env: &E,
+        epochs: usize,
+        verbose: bool,
+    ) -> &'a mut A {
         // create multiple agents and an env for each one
-        let mut agents = vec![self.agent.clone(); self.agent_amount];
-        let mut best_agent = self.agent.clone();
+        let mut agents = vec![agent.clone(); self.agent_amount];
+        let best_agent = agent;
         let mut envs = vec![env.clone(); self.agent_amount];
 
         // run epochs
@@ -177,7 +162,7 @@ impl<A: Evolve + Agent> Learner<A> for NeuroEvolutionLearner<A> {
             }
 
             // HILLCLIMBING: save the best agent from each generation
-            best_agent = agents[scores.argmax().unwrap()].clone();
+            *best_agent = agents[scores.argmax().unwrap()].clone();
 
             // spawn new generation
             agents = self.new_generation(agents.iter().collect(), &scores);
@@ -208,12 +193,11 @@ mod tests {
             Box::new(SigmoidLayer::new(5, 10)),
             Box::new(SoftmaxLayer::new(env_action_space, 5)),
         ];
-        let agent = NetworkAgent::new(Box::new(FeedForwardNetwork::new(network_layers)));
-        let mut params = HashMap::with_capacity(1);
-        params.insert("agent_amount", Param::Usize(10));
-        params.insert("mutation_rate", Param::Float(0.01));
-        let mut learner = NeuroEvolutionLearner::new(agent, Some(&params));
+        let mut agent = NetworkAgent::new(Box::new(FeedForwardNetwork::new(network_layers)));
+        let agent_amount = 10;
+        let mutation_rate = 0.01;
+        let mut learner = NeuroEvolutionLearner::new(agent_amount, mutation_rate);
         let epochs = 10;
-        learner.master(&env, epochs, false);
+        learner.train(&mut agent, &env, epochs, false);
     }
 }
