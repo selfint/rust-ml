@@ -1,5 +1,4 @@
-use crate::neuron::layer::FeedForwardLayer;
-use crate::neuron::network::{FeedForwardNetwork, FeedForwardNetworkTrait};
+use crate::neuron::network::Network;
 use crate::rl::agent::Agent;
 use crate::rl::environment::{Action, Environment};
 use crate::rl::learner::Learner;
@@ -10,8 +9,9 @@ use ndarray_rand::rand_distr::WeightedIndex;
 use ndarray_stats::QuantileExt;
 use std::collections::HashMap;
 
-pub struct NeuroEvolutionAgent {
-    network: FeedForwardNetwork,
+#[derive(Debug, Clone)]
+pub struct NeuroEvolutionAgent<N: Network> {
+    network: N,
 }
 
 pub trait Evolve {
@@ -19,49 +19,21 @@ pub trait Evolve {
     fn crossover(&self, other: &Self) -> Self;
 }
 
-impl NeuroEvolutionAgent {
-    pub fn new(layers: Vec<Box<dyn FeedForwardLayer>>) -> Self {
-        Self {
-            network: FeedForwardNetwork::new(layers),
-        }
-    }
-
-    pub fn new_multiple(agents_layers: Vec<Vec<Box<dyn FeedForwardLayer>>>) -> Vec<Self> {
-        let mut agents: Vec<Self> = Vec::with_capacity(agents_layers.len());
-
-        for layers in agents_layers {
-            agents.push(NeuroEvolutionAgent::new(layers));
-        }
-
-        agents
+impl<N: Network> NeuroEvolutionAgent<N> {
+    pub fn new(network: N) -> Self {
+        Self { network }
     }
 }
 
-impl Agent for NeuroEvolutionAgent {
+impl<N: Network> Agent for NeuroEvolutionAgent<N> {
     fn act(&self, state: &Array1<f32>) -> Action {
         Action::Discrete(self.network.predict(state).argmax().unwrap())
     }
 }
 
-impl Evolve for NeuroEvolutionAgent {
+impl<N: Network> Evolve for NeuroEvolutionAgent<N> {
     fn mutate(&mut self) {
-        let mut rng = thread_rng();
-        let layer = self
-            .network
-            .layers
-            .choose_mut(&mut rng)
-            .expect("failed to choose random layer to mutate");
-
-        if rng.gen_bool(0.5) {
-            let layer_weights = layer.get_weights_mut();
-            let weight_source = rng.gen_range(0..layer_weights.len_of(Axis(0)));
-            let weight_dest = rng.gen_range(0..layer_weights.len_of(Axis(1)));
-            layer_weights[[weight_source, weight_dest]] = rng.gen_range(-0.01..0.01);
-        } else {
-            let layer_biases = layer.get_biases_mut();
-            let bias = rng.gen_range(0..layer_biases.len_of(Axis(0)));
-            layer_biases[bias] = rng.gen_range(-0.01..0.01);
-        }
+        todo!()
     }
 
     fn crossover(&self, other: &Self) -> Self {
@@ -161,7 +133,9 @@ mod tests {
     use super::*;
     use crate::environment::Environment;
     use crate::environments::jump::JumpEnvironment;
+    use crate::neuron::layer::LayerTrait;
     use crate::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
+    use crate::neuron::networks::feed_forward::FeedForwardNetwork;
 
     #[test]
     fn test_neuro_evolution_learner() {
@@ -179,18 +153,14 @@ mod tests {
         };
 
         let env_action_space = env_max_action - env_min_action;
-        let mut agents_layers: Vec<Vec<Box<dyn FeedForwardLayer>>> =
-            Vec::with_capacity(agent_amount);
-        for _ in 0..agent_amount {
-            let layers: Vec<Box<dyn FeedForwardLayer>> = vec![
-                Box::new(ReLuLayer::new(10, env_observation_space)),
-                Box::new(SigmoidLayer::new(5, 10)),
-                Box::new(SoftmaxLayer::new(env_action_space, 5)),
-            ];
-            agents_layers.push(layers);
-        }
-
-        let agents: Vec<NeuroEvolutionAgent> = NeuroEvolutionAgent::new_multiple(agents_layers);
+        let network_layers: Vec<Box<dyn LayerTrait>> = vec![
+            Box::new(ReLuLayer::new(10, env_observation_space)),
+            Box::new(SigmoidLayer::new(5, 10)),
+            Box::new(SoftmaxLayer::new(env_action_space, 5)),
+        ];
+        let network = FeedForwardNetwork::new(network_layers);
+        let agents: Vec<NeuroEvolutionAgent<FeedForwardNetwork>> =
+            vec![NeuroEvolutionAgent::new(network); agent_amount];
         let mut learner = NeuroEvolutionLearner::new(agents);
         let mut params = HashMap::with_capacity(1);
         params.insert("agent_amount", 10.);
