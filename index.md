@@ -1,37 +1,27 @@
-## Welcome to GitHub Pages
+# Rust-ML
 
-You can use the [editor on GitHub](https://github.com/tomaster777/rust-ml/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+A simple machine learning library written in Rust, for supervised, unsupervised and 
+reinforcement learning.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Contents
 
-### Markdown
+- **Neuron**: A simple neural network library.
+- **RL**: Implementations of RL algorithms and training environments.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Neuron
 
-```markdown
-Syntax highlighted code block
+CPU based neural network library implemented using [ndarray](https://github.com/rust-ndarray/ndarray).
 
-# Header 1
-## Header 2
-### Header 3
 
-- Bulleted
-- List
+It won't outperform Tensorflow but it should still be very fast.
 
-1. Numbered
-2. List
+## RL
 
-**Bold** and _Italic_ and `Code` text
+Reinforcement learning library containing Agents, Learners and Environments. 
 
-[Link](url) and ![Image](src)
-```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/tomaster777/rust-ml/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+A **Learner** teaches an **Agent** to master an **Environment**.
+All agents, learners and environments are designed to be easily swappable. For
+example a QAgent can interact with a Jump environment and learn using a QLearner,
+and that same agent can interact with a Bird environment and learn using a
+NeuroEvolutionLearner.
