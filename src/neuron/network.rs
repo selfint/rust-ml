@@ -7,6 +7,7 @@ pub trait Network: Debug + CloneableNetwork {
     fn get_weights(&self) -> Vec<&Array2<f32>>;
     fn get_biases(&self) -> Vec<&Array1<f32>>;
     fn get_layers(&self) -> &Vec<Box<dyn LayerTrait>>;
+    fn get_layers_mut(&mut self) -> &mut Vec<Box<dyn LayerTrait>>;
     fn predict(&self, input: &Array1<f32>) -> Array1<f32>;
 }
 

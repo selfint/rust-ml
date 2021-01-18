@@ -37,6 +37,10 @@ impl Network for FeedForwardNetwork {
     fn get_layers(&self) -> &Vec<Box<dyn LayerTrait>> {
         &self.layers
     }
+
+    fn get_layers_mut(&mut self) -> &mut Vec<Box<dyn LayerTrait>> {
+        &mut self.layers
+    }
 }
 
 #[cfg(test)]
