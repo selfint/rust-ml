@@ -1,10 +1,11 @@
-use crate::rl::environment::Environment;
-use crate::rl::Action;
-use ndarray::prelude::*;
-use ndarray_rand::rand::{thread_rng, Rng};
 use std::cmp;
 use std::convert::TryInto;
 use std::fmt::Display;
+
+use ndarray::prelude::*;
+use ndarray_rand::rand::{thread_rng, Rng};
+
+use crate::rl::prelude::*;
 
 #[derive(Clone)]
 pub struct JumpEnvironment {

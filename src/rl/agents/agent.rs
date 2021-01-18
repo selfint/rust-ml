@@ -1,4 +1,4 @@
-use crate::rl::{Action, State};
+use crate::rl::prelude::*;
 
 pub trait Agent: Clone {
     fn act(&self, state: &State) -> Action;

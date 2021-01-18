@@ -1,13 +1,12 @@
-use crate::rl::agent::Agent;
-use crate::rl::agents::network_agent::NetworkAgent;
-use crate::rl::environment::Environment;
-use crate::rl::learner::Learner;
-use crate::rl::{Param, Reward};
+use std::collections::HashMap;
+
 use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use ndarray_rand::rand_distr::WeightedIndex;
 use ndarray_stats::QuantileExt;
-use std::collections::HashMap;
+
+use crate::rl::agents::NetworkAgent;
+use crate::rl::prelude::*;
 
 // Allows for learning using a genetic algorithm
 pub trait Evolve {
@@ -194,10 +193,10 @@ mod tests {
     use super::*;
     use crate::neuron::layer::LayerTrait;
     use crate::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
-    use crate::neuron::networks::feed_forward::FeedForwardNetwork;
-    use crate::rl::agents::network_agent::NetworkAgent;
-    use crate::rl::environment::Environment;
-    use crate::rl::environments::jump::JumpEnvironment;
+    use crate::neuron::networks::FeedForwardNetwork;
+    use crate::rl::agents::NetworkAgent;
+    use crate::rl::environments::JumpEnvironment;
+    use crate::rl::learners::neuro_evolution::NeuroEvolutionLearner;
 
     #[test]
     fn test_neuro_evolution_learner() {

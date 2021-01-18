@@ -2,14 +2,11 @@ use std::collections::HashMap;
 use std::{thread, time};
 
 use rust_ml::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
-use rust_ml::neuron::networks::feed_forward::FeedForwardNetwork;
-use rust_ml::rl::agent::Agent;
-use rust_ml::rl::agents::network_agent::NetworkAgent;
-use rust_ml::rl::environment::Environment;
-use rust_ml::rl::environments::jump::JumpEnvironment;
-use rust_ml::rl::learner::Learner;
-use rust_ml::rl::learners::neuro_evolution::NeuroEvolutionLearner;
-use rust_ml::rl::Param;
+use rust_ml::neuron::networks::FeedForwardNetwork;
+use rust_ml::rl::agents::NetworkAgent;
+use rust_ml::rl::environments::JumpEnvironment;
+use rust_ml::rl::learners::NeuroEvolutionLearner;
+use rust_ml::rl::prelude::*;
 
 fn main() {
     let env_size = 7;

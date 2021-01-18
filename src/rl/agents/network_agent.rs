@@ -1,6 +1,6 @@
+use crate::rl::prelude::*;
+
 use crate::neuron::network::Network;
-use crate::rl::agent::Agent;
-use crate::rl::{Action, State};
 use ndarray_stats::QuantileExt;
 
 #[derive(Debug, Clone)]

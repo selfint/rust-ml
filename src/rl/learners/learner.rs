@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use crate::rl::agent::Agent;
-use crate::rl::environment::Environment;
-use crate::rl::Param;
+use crate::rl::prelude::*;
 
 pub trait Learner<A: Agent> {
     fn new(agent: A, params: Option<&HashMap<&str, Param>>) -> Self;

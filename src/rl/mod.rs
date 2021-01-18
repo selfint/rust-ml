@@ -1,9 +1,7 @@
-pub mod agent;
 pub mod agents;
-pub mod environment;
 pub mod environments;
-pub mod learner;
 pub mod learners;
+pub mod prelude;
 
 use ndarray::prelude::*;
 
