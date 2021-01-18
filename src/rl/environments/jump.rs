@@ -1,5 +1,5 @@
-use crate::rl::environment::Action;
 use crate::rl::environment::Environment;
+use crate::rl::Action;
 use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use std::cmp;

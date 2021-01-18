@@ -1,6 +1,6 @@
-use crate::neuron::network::Network;
 use crate::rl::agent::Agent;
-use crate::rl::environment::{Action, Environment};
+use crate::rl::agents::network_agent::NetworkAgent;
+use crate::rl::environment::Environment;
 use crate::rl::learner::Learner;
 use ndarray::prelude::*;
 use ndarray_rand::rand::seq::SliceRandom;
@@ -9,35 +9,63 @@ use ndarray_rand::rand_distr::WeightedIndex;
 use ndarray_stats::QuantileExt;
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
-pub struct NeuroEvolutionAgent<N: Network> {
-    network: N,
-}
-
+// Allows for learning using a genetic algorithm
 pub trait Evolve {
     fn mutate(&mut self);
     fn crossover(&self, other: &Self) -> Self;
 }
 
-impl<N: Network> NeuroEvolutionAgent<N> {
-    pub fn new(network: N) -> Self {
-        Self { network }
-    }
-}
-
-impl<N: Network> Agent for NeuroEvolutionAgent<N> {
-    fn act(&self, state: &Array1<f32>) -> Action {
-        Action::Discrete(self.network.predict(state).argmax().unwrap())
-    }
-}
-
-impl<N: Network> Evolve for NeuroEvolutionAgent<N> {
+impl Evolve for NetworkAgent {
     fn mutate(&mut self) {
-        todo!()
+        let mut rng = thread_rng();
+        let random_layer = self.network.get_layers_mut().choose_mut(&mut rng).unwrap();
+
+        if rng.gen_bool(0.5) {
+            // mutate weight
+            let layer_weights = random_layer.get_weights_mut();
+            let weight_src = rng.gen_range(0..layer_weights.len_of(Axis(1)));
+            let weight_dst = rng.gen_range(0..layer_weights.len_of(Axis(0)));
+            layer_weights[[weight_dst, weight_src]] = rng.gen_range(-0.01..0.01);
+        } else {
+            // mutate bias
+            let layer_biases = random_layer.get_biases_mut();
+            let bias = rng.gen_range(0..layer_biases.len());
+            layer_biases[bias] = rng.gen_range(-0.01..0.01);
+        }
     }
 
     fn crossover(&self, other: &Self) -> Self {
-        todo!()
+        let mut rng = thread_rng();
+        let mut new_network = self.network.clone();
+        let new_layers = new_network.get_layers_mut();
+        let other_layers = other.network.get_layers();
+        for (new_layer, other_layer) in new_layers.iter_mut().zip(other_layers.iter()) {
+            // crossover biases
+            {
+                let layer_biases = new_layer.get_biases_mut();
+                let other_biases = other_layer.get_biases();
+                for dst in 0..layer_biases.len() {
+                    if rng.gen_bool(0.5) {
+                        layer_biases[dst] = other_biases[dst];
+                    }
+                }
+            }
+
+            // crossover weights
+            {
+                let layer_weights = new_layer.get_weights_mut();
+                let other_weights = other_layer.get_weights();
+                for dst in 0..layer_weights.len_of(Axis(0)) {
+                    for src in 0..layer_weights.len_of(Axis(1)) {
+                        if rng.gen_bool(0.5) {
+                            layer_weights[[dst, src]] = other_weights[[dst, src]];
+                        }
+                    }
+                }
+            }
+        }
+
+        Self::new(new_network)
     }
 }
 
@@ -108,7 +136,7 @@ impl<A: Evolve + Agent> Learner for NeuroEvolutionLearner<A> {
 
         // run epochs
         let max_reward = environments[0].max_reward();
-        for e in 0..epochs {
+        for _e in 0..epochs {
             let mut scores = vec![];
 
             // evaluate each agent
@@ -136,6 +164,8 @@ mod tests {
     use crate::neuron::layer::LayerTrait;
     use crate::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
     use crate::neuron::networks::feed_forward::FeedForwardNetwork;
+    use crate::rl::agents::network_agent::NetworkAgent;
+    use crate::rl::Action;
 
     #[test]
     fn test_neuro_evolution_learner() {
@@ -158,9 +188,11 @@ mod tests {
             Box::new(SigmoidLayer::new(5, 10)),
             Box::new(SoftmaxLayer::new(env_action_space, 5)),
         ];
-        let network = FeedForwardNetwork::new(network_layers);
-        let agents: Vec<NeuroEvolutionAgent<FeedForwardNetwork>> =
-            vec![NeuroEvolutionAgent::new(network); agent_amount];
+        let agents: Vec<NetworkAgent> =
+            vec![
+                NetworkAgent::new(Box::new(FeedForwardNetwork::new(network_layers)));
+                agent_amount
+            ];
         let mut learner = NeuroEvolutionLearner::new(agents);
         let mut params = HashMap::with_capacity(1);
         params.insert("agent_amount", 10.);
