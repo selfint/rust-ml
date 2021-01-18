@@ -6,6 +6,6 @@ pub trait Environment: Clone {
     fn step(&mut self, action: &Action) -> Reward;
     fn is_done(&self) -> bool;
     fn max_reward(&self) -> Reward;
-    fn action_space(&self) -> (Action, Action);
+    fn action_space(&self) -> usize;
     fn observation_space(&self) -> usize;
 }
