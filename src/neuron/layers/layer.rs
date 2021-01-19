@@ -1,54 +1,62 @@
 use ndarray::prelude::*;
-use std::fmt::Debug;
 
-/// Base trait for all layers
-pub trait LayerTrait: Debug + CloneableLayer {
+
+pub trait NeuronLayer: Clone {
     fn input_size(&self) -> usize;
     fn output_size(&self) -> usize;
+
     fn get_weights(&self) -> &Array2<f32>;
-    fn get_biases(&self) -> &Array1<f32>;
     fn get_weights_mut(&mut self) -> &mut Array2<f32>;
+
+    fn get_biases(&self) -> &Array1<f32>;
     fn get_biases_mut(&mut self) -> &mut Array1<f32>;
-    fn activate(&self, input: &Array1<f32>) -> Array1<f32>;
-    fn forward(&self, input: &Array1<f32>) -> Array1<f32> {
-        self.activate(&(self.get_weights().dot(input) + self.get_biases()))
+
+    fn apply_transfer(&self, input: &Array1<f32>) -> Array1<f32>;
+    fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32>;
+
+    fn forward(&mut self, input: &Array1<f32>) -> Array1<f32> {
+        self.apply_activation(&self.apply_transfer(input))
     }
 }
 
-/// Allows for implementing Clone for dyn LayerTrait
-pub trait CloneableLayer {
-    fn clone_box(&self) -> Box<dyn LayerTrait>;
-}
+pub trait Cached: NeuronLayer {
+    fn get_input(&self) -> Option<&Array1<f32>>;
+    fn get_transfer(&self) -> Option<&Array1<f32>>;
+    fn get_activation(&self) -> Option<&Array1<f32>>;
 
-/// Implement Clone for 'static LayerTrait types
-impl<T: 'static + LayerTrait + Clone> CloneableLayer for T {
-    fn clone_box(&self) -> Box<dyn LayerTrait> {
-        Box::new(self.clone())
-    }
-}
+    fn cache_input(&mut self, input: Array1<f32>);
+    fn cache_transfer(&mut self, transfer: Array1<f32>);
+    fn cache_activation(&mut self, activation: Array1<f32>);
 
-/// Forward Clone's `clone` function to CloneableLayer's `clone_box` function
-impl Clone for Box<dyn LayerTrait> {
-    fn clone(&self) -> Box<dyn LayerTrait> {
-        self.clone_box()
+    fn forward(&mut self, input: &Array1<f32>) -> Array1<f32> {
+        let transfer = self.apply_transfer(input);
+        let activation = self.apply_activation(&transfer);
+
+        self.cache_input(input.clone());
+        self.cache_transfer(transfer);
+        self.cache_activation(activation.clone());
+
+        activation
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::neuron::layers::relu::ReLuLayer;
+    use crate::neuron::activations::Linear;
+    use crate::neuron::layers::ModularLayer;
+    use crate::neuron::transfers::FullyConnected;
 
     #[test]
     fn test_relu_layer() {
-        let layer = ReLuLayer::new(3, 2);
+        let mut layer = ModularLayer::new(3, 2, FullyConnected::new(), Linear::new());
         let output = layer.forward(&arr1(&[1., 0.]));
         assert_eq!(output.len(), 3);
     }
 
     #[test]
     fn size_test() {
-        let layer = ReLuLayer::new(3, 2);
+        let layer = ModularLayer::new(3, 2, FullyConnected::new(), Linear::new());
         assert_eq!(layer.input_size(), 2);
         assert_eq!(layer.output_size(), 3);
     }
