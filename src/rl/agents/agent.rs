@@ -1,5 +1,5 @@
 use crate::rl::prelude::*;
 
-pub trait Agent: Clone {
-    fn act(&self, state: &State) -> Action;
+pub trait Agent<A: Action>: Clone {
+    fn act(&self, state: &State) -> A;
 }

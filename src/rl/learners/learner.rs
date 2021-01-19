@@ -1,11 +1,11 @@
 use crate::rl::prelude::*;
 
-pub trait Learner<A: Agent> {
-    fn train<'a, E: Environment>(
+pub trait Learner<AC: Action, AG: Agent<AC>> {
+    fn train<'a, E: Environment<AC>>(
         &mut self,
-        agent: &'a mut A,
+        agent: &'a mut AG,
         env: &E,
         epochs: usize,
         verbose: bool,
-    ) -> &'a mut A;
+    ) -> &'a mut AG;
 }
