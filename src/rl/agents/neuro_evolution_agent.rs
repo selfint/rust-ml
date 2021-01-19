@@ -1,35 +1,62 @@
+use std::marker::PhantomData;
+
 use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use ndarray_stats::QuantileExt;
 
-use crate::neuron::networks::Network;
+use crate::neuron::layers::NeuronLayer;
+use crate::neuron::networks::FeedForwardNetworkTrait;
 use crate::rl::learners::neuro_evolution_internals::Evolve;
 use crate::rl::prelude::*;
 
 #[derive(Clone)]
-pub struct NeuroEvolutionAgent {
-    network: Box<dyn Network>,
+pub struct NeuroEvolutionAgent<N, L>
+where
+    L: NeuronLayer,
+    N: FeedForwardNetworkTrait<L>,
+{
+    network: N,
+    phantom: PhantomData<L>,
 }
 
-impl NeuroEvolutionAgent {
-    pub fn new(network: Box<dyn Network>) -> Self {
-        Self { network }
+impl<N, L> NeuroEvolutionAgent<N, L>
+where
+    L: NeuronLayer,
+    N: FeedForwardNetworkTrait<L>,
+{
+    pub fn new(network: N) -> Self {
+        Self {
+            network,
+            phantom: PhantomData,
+        }
     }
 }
 
-impl Agent<DiscreteAction> for NeuroEvolutionAgent {
-    fn act(&self, state: &State) -> DiscreteAction {
+impl<N, L> Agent<DiscreteAction> for NeuroEvolutionAgent<N, L>
+where
+    L: NeuronLayer,
+    N: FeedForwardNetworkTrait<L>,
+{
+    fn act(&mut self, state: &State) -> DiscreteAction {
         DiscreteAction(self.network.predict(state).argmax().unwrap())
     }
 }
 
-impl Agent<ContinuousAction> for NeuroEvolutionAgent {
-    fn act(&self, state: &State) -> ContinuousAction {
+impl<N, L> Agent<ContinuousAction> for NeuroEvolutionAgent<N, L>
+where
+    L: NeuronLayer,
+    N: FeedForwardNetworkTrait<L>,
+{
+    fn act(&mut self, state: &State) -> ContinuousAction {
         ContinuousAction(self.network.predict(state))
     }
 }
 
-impl Evolve for NeuroEvolutionAgent {
+impl<N, L> Evolve for NeuroEvolutionAgent<N, L>
+where
+    L: NeuronLayer,
+    N: FeedForwardNetworkTrait<L>,
+{
     /// mutate weights and biases of agent's network
     fn mutate(&mut self, mutation_rate: f64) {
         let mut rng = thread_rng();

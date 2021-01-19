@@ -88,7 +88,7 @@ where
             let mut scores = Array1::zeros(self.agent_amount);
 
             // evaluate each agent
-            for (i, (agent, environment)) in agents.iter().zip(envs.iter_mut()).enumerate() {
+            for (i, (agent, environment)) in agents.iter_mut().zip(envs.iter_mut()).enumerate() {
                 let mut score = 0.;
                 environment.reset();
 
@@ -126,9 +126,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::neuron::layers::LayerTrait;
-    use crate::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
-    use crate::neuron::networks::FeedForwardNetwork;
+    use crate::neuron::activations::{ReLu, Sigmoid, Softmax};
+    use crate::neuron::layers::Layer;
+    use crate::neuron::networks::StandardFeedForwardNetwork;
+    use crate::neuron::transfers::FullyConnected;
     use crate::rl::agents::NeuroEvolutionAgent;
     use crate::rl::environments::JumpEnvironment;
     use crate::rl::learners::neuro_evolution::NeuroEvolutionLearner;
@@ -138,12 +139,11 @@ mod tests {
         let env = JumpEnvironment::new(10);
         let env_observation_space = env.observation_space();
         let env_action_space = env.action_space();
-        let network_layers: Vec<Box<dyn LayerTrait>> = vec![
-            Box::new(ReLuLayer::new(10, env_observation_space)),
-            Box::new(SigmoidLayer::new(5, 10)),
-            Box::new(SoftmaxLayer::new(env_action_space, 5)),
-        ];
-        let mut agent = NeuroEvolutionAgent::new(Box::new(FeedForwardNetwork::new(network_layers)));
+        let l1 = Layer::new(3, env_observation_space, FullyConnected::new(), ReLu::new());
+        let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
+        let l3 = Layer::new(env_action_space, 4, FullyConnected::new(), Softmax::new());
+        let network_layers = vec![l1, l2, l3];
+        let mut agent = NeuroEvolutionAgent::new(StandardFeedForwardNetwork::new(network_layers));
         let agent_amount = 10;
         let mutation_rate = 0.01;
         let mut learner = NeuroEvolutionLearner::new(agent_amount, mutation_rate);
