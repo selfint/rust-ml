@@ -48,18 +48,14 @@ impl JumpEnvironment {
     }
 
     /// act on player action and update player position
-    fn update_player(&mut self, action: &Action) {
+    fn update_player(&mut self, action: &DiscreteAction) {
         let player_on_ground = self.player.1 == self.ground + 1;
 
         match player_on_ground {
-            true => {
-                if let Action::Discrete(a) = action {
-                    match *a {
-                        1 => self.player_vel = 2,
-                        _ => self.player_vel = 0,
-                    }
-                }
-            }
+            true => match action.0 {
+                1 => self.player_vel = 2,
+                _ => self.player_vel = 0,
+            },
             false => {
                 self.player_vel -= 1;
             }
@@ -102,7 +98,7 @@ impl JumpEnvironment {
     }
 }
 
-impl Environment for JumpEnvironment {
+impl Environment<DiscreteAction> for JumpEnvironment {
     fn reset(&mut self) {
         self.player = (self.ground, self.ground + 1);
         self.player_vel = 0;
@@ -132,8 +128,8 @@ impl Environment for JumpEnvironment {
         arr1(&state)
     }
 
-    fn step(&mut self, action: &Action) -> f32 {
-        self.update_player(action);
+    fn step(&mut self, action: &DiscreteAction) -> f32 {
+        self.update_player(&action);
         self.update_walls();
 
         if !self.done {
@@ -222,7 +218,7 @@ mod tests {
     fn test_no_action_kills_player() {
         let mut env = JumpEnvironment::new(5);
         for _ in 0..1000 {
-            env.step(&Action::Discrete(0));
+            env.step(&DiscreteAction(0));
         }
 
         assert!(env.is_done());
@@ -232,7 +228,7 @@ mod tests {
     fn test_constant_action_kills_player() {
         let mut env = JumpEnvironment::new(10);
         for _ in 0..1000 {
-            env.step(&Action::Discrete(1));
+            env.step(&DiscreteAction(1));
         }
 
         assert!(env.is_done());
