@@ -126,7 +126,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::neuron::layer::LayerTrait;
+    use crate::neuron::layers::LayerTrait;
     use crate::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
     use crate::neuron::networks::FeedForwardNetwork;
     use crate::rl::agents::NeuroEvolutionAgent;

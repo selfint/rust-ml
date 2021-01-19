@@ -1,4 +1,4 @@
-use crate::neuron::layer::LayerTrait;
+use crate::neuron::layers::LayerTrait;
 use ndarray::prelude::*;
 use std::fmt::Debug;
 

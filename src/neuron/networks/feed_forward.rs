@@ -1,5 +1,5 @@
-use crate::neuron::layer::LayerTrait;
-use crate::neuron::network::Network;
+use crate::neuron::layers::LayerTrait;
+use crate::neuron::networks::Network;
 use ndarray::prelude::*;
 
 #[derive(Debug, Clone)]

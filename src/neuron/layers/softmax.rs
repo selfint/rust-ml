@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
-use crate::neuron::layer::LayerTrait;
+use crate::neuron::layers::LayerTrait;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct SoftmaxLayer {

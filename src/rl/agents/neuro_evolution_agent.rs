@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use ndarray_stats::QuantileExt;
 
-use crate::neuron::network::Network;
+use crate::neuron::networks::Network;
 use crate::rl::learners::neuro_evolution_internals::Evolve;
 use crate::rl::prelude::*;
 
