@@ -1,9 +1,9 @@
+mod neuron_layer;
 mod layer;
-mod relu;
-mod sigmoid;
-mod softmax;
+mod fully_connected;
+mod cached_layer;
 
-pub use layer::LayerTrait;
-pub use relu::ReLuLayer;
-pub use sigmoid::SigmoidLayer;
-pub use softmax::SoftmaxLayer;
+pub use neuron_layer::{NeuronLayer, Cached};
+pub use layer::Layer;
+pub use fully_connected::FullyConnectedLayer;
+pub use cached_layer::CachedLayer;
