@@ -1,4 +1,5 @@
-pub mod agent;
-mod network_agent;
+mod agent;
+mod neuro_evolution_agent;
 
-pub use network_agent::NetworkAgent;
+pub use agent::Agent;
+pub use neuro_evolution_agent::NeuroEvolutionAgent;
