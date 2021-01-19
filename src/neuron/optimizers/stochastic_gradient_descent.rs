@@ -26,7 +26,12 @@ where
     N: FeedForwardNetworkTrait<L>,
 {
     fn optimize_once(&self, network: &mut N, prediction: &Array1<f32>, expected: &Array1<f32>) {
-        todo!()
+        let network_loss = self.loss.loss(prediction, expected);
+        let mut layer_loss = network_loss;
+        for layer in network.get_layers_mut().iter_mut().rev() {
+            // derivate of activation with respect to the
+            todo!()
+        }
     }
 }
 
@@ -35,7 +40,7 @@ mod tests {
     use super::*;
     use crate::neuron::activations::Sigmoid;
     use crate::neuron::layers::FullyConnectedLayer;
-    use crate::neuron::losses::{MSE, mse};
+    use crate::neuron::losses::{mse, MSE};
     use crate::neuron::networks::StandardFeedForwardNetwork;
 
     #[test]
