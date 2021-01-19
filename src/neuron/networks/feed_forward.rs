@@ -1,21 +1,29 @@
-use crate::neuron::layers::LayerTrait;
-use crate::neuron::networks::Network;
+use crate::neuron::layers::NeuronLayer;
+use crate::neuron::networks::FeedForwardNetworkTrait;
+use crate::neuron::networks::NetworkTrait;
 use ndarray::prelude::*;
 
 #[derive(Debug, Clone)]
-pub struct FeedForwardNetwork {
-    layers: Vec<Box<dyn LayerTrait>>,
+pub struct StandardFeedForwardNetwork<L: NeuronLayer> {
+    layers: Vec<L>,
 }
 
-impl FeedForwardNetwork {
-    pub fn new(layers: Vec<Box<dyn LayerTrait>>) -> Self {
-        FeedForwardNetwork { layers }
+impl<L: NeuronLayer> StandardFeedForwardNetwork<L> {
+    pub fn new(layers: Vec<L>) -> StandardFeedForwardNetwork<L> {
+        assert!(!layers.is_empty(), "network must have at least one layer");
+
+        StandardFeedForwardNetwork { layers }
     }
 }
 
-impl Network for FeedForwardNetwork {
+impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
     fn shape(&self) -> Vec<usize> {
-        self.layers.iter().map(|l| l.output_size()).collect()
+        let mut shape = vec![self.layers[0].input_size()];
+        for layer in self.layers.iter() {
+            shape.push(layer.output_size());
+        }
+
+        shape
     }
 
     fn get_weights(&self) -> Vec<&Array2<f32>> {
@@ -24,22 +32,6 @@ impl Network for FeedForwardNetwork {
 
     fn get_biases(&self) -> Vec<&Array1<f32>> {
         self.layers.iter().map(|l| l.get_biases()).collect()
-    }
-
-    fn predict(&self, input: &Array1<f32>) -> Array1<f32> {
-        self.layers
-            .iter()
-            .fold(input.clone(), |prev_layer_output, layer| {
-                layer.forward(&prev_layer_output)
-            })
-    }
-
-    fn get_layers(&self) -> &Vec<Box<dyn LayerTrait>> {
-        &self.layers
-    }
-
-    fn get_layers_mut(&mut self) -> &mut Vec<Box<dyn LayerTrait>> {
-        &mut self.layers
     }
 
     fn get_weights_mut(&mut self) -> Vec<&mut Array2<f32>> {
@@ -52,20 +44,40 @@ impl Network for FeedForwardNetwork {
     fn get_biases_mut(&mut self) -> Vec<&mut Array1<f32>> {
         self.layers.iter_mut().map(|l| l.get_biases_mut()).collect()
     }
+
+    fn get_layers(&self) -> &Vec<L> {
+        &self.layers
+    }
+
+    fn get_layers_mut(&mut self) -> &mut Vec<L> {
+        &mut self.layers
+    }
+}
+
+impl<L: NeuronLayer> FeedForwardNetworkTrait<L> for StandardFeedForwardNetwork<L> {
+    fn predict(&mut self, input: &Array1<f32>) -> Array1<f32> {
+        self.layers
+            .iter_mut()
+            .fold(input.clone(), |prev_layer_output, layer| {
+                layer.forward(&prev_layer_output)
+            })
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
+    use crate::neuron::activations::{ReLu, Sigmoid, Softmax};
+    use crate::neuron::layers::Layer;
+    use crate::neuron::transfers::FullyConnected;
 
     #[test]
     fn test_network_predict() {
-        let l1 = Box::new(ReLuLayer::new(3, 2));
-        let l2 = Box::new(SigmoidLayer::new(4, 3));
-        let l3 = Box::new(SoftmaxLayer::new(1, 4));
+        let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
+        let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
+        let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
 
-        let network = FeedForwardNetwork::new(vec![l1, l2, l3]);
+        let mut network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
 
         let input = [0., 1.];
         let output = network.predict(&arr1(&input));
@@ -74,13 +86,13 @@ mod tests {
 
     #[test]
     fn test_network_is_cloneable() {
-        let l1 = Box::new(ReLuLayer::new(3, 2));
-        let l2 = Box::new(SigmoidLayer::new(4, 3));
-        let l3 = Box::new(SoftmaxLayer::new(1, 4));
+        let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
+        let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
+        let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
 
-        let layers: Vec<Box<dyn LayerTrait>> = vec![l1, l2, l3];
-        let network1 = FeedForwardNetwork::new(layers.clone());
-        let network2 = FeedForwardNetwork::new(layers);
+        let layers = vec![l1, l2, l3];
+        let mut network1 = StandardFeedForwardNetwork::new(layers);
+        let mut network2 = network1.clone();
 
         let input = [0., 1.];
         let output1 = network1.predict(&arr1(&input));
