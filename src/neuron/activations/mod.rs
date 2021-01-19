@@ -5,7 +5,7 @@ mod sigmoid;
 mod softmax;
 
 pub use activation::{Activation, ActivationTrait};
-pub use linear::{Linear, linear_activation};
-pub use relu::{ReLu, relu_activation};
-pub use sigmoid::{Sigmoid, sigmoid_activation};
-pub use softmax::{Softmax, softmax_activation};
+pub use linear::{linear_activation, Linear};
+pub use relu::{relu_activation, ReLu};
+pub use sigmoid::{sigmoid_activation, Sigmoid};
+pub use softmax::{softmax_activation, Softmax};

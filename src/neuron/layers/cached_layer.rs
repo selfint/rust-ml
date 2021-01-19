@@ -3,7 +3,7 @@ use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
 use crate::neuron::activations::Activation;
-use crate::neuron::layers::{NeuronLayer, Cached};
+use crate::neuron::layers::{Cached, NeuronLayer};
 use crate::neuron::transfers::Transfer;
 
 #[derive(Clone, Debug)]
@@ -67,7 +67,8 @@ impl NeuronLayer for CachedLayer {
     }
 
     fn apply_transfer(&self, input: &Array1<f32>) -> Array1<f32> {
-        self.transfer_fn.transfer(&self.weights, &self.biases, input)
+        self.transfer_fn
+            .transfer(&self.weights, &self.biases, input)
     }
 
     fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32> {
@@ -76,7 +77,6 @@ impl NeuronLayer for CachedLayer {
 }
 
 impl Cached for CachedLayer {
-
     fn get_input(&self) -> Option<&Array1<f32>> {
         self.input.as_ref()
     }

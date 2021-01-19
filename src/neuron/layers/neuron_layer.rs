@@ -1,6 +1,5 @@
 use ndarray::prelude::*;
 
-
 pub trait NeuronLayer: Clone {
     fn input_size(&self) -> usize;
     fn output_size(&self) -> usize;
