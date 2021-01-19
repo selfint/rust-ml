@@ -4,6 +4,7 @@ use ndarray::Array1;
 
 pub trait ActivationTrait: CloneableActivation + Debug {
     fn activate(&self, transfer: &Array1<f32>) -> Array1<f32>;
+    fn derive(&self, activation: &Array1<f32>) -> Array1<f32>;
 }
 
 pub type Activation = Box<dyn ActivationTrait>;
