@@ -5,7 +5,7 @@ use ndarray_stats::QuantileExt;
 
 use crate::rl::prelude::*;
 
-// Allows for learning using a genetic algorithm
+/// Allows for learning using a genetic algorithm
 pub trait Evolve {
     fn mutate(&mut self, mutation_rate: f64);
     fn crossover(&self, other: &Self) -> Self;
