@@ -2,7 +2,7 @@ use std::{thread, time};
 
 use rust_ml::neuron::layers::{ReLuLayer, SigmoidLayer, SoftmaxLayer};
 use rust_ml::neuron::networks::FeedForwardNetwork;
-use rust_ml::rl::agents::NetworkAgent;
+use rust_ml::rl::agents::NeuroEvolutionAgent;
 use rust_ml::rl::environments::JumpEnvironment;
 use rust_ml::rl::learners::NeuroEvolutionLearner;
 use rust_ml::rl::prelude::*;
@@ -22,7 +22,7 @@ fn main() {
     ]);
 
     // build agent with network
-    let mut agent = NetworkAgent::new(Box::new(network));
+    let mut agent = NeuroEvolutionAgent::new(Box::new(network));
 
     // train learner
     let epochs = 50;
