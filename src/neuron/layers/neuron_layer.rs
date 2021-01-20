@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_layer() {
-        let mut layer = Layer::new(3, 2, FullyConnected::new(), Linear::new());
+        let layer = Layer::new(3, 2, FullyConnected::new(), Linear::new());
         let output = layer.forward(&arr1(&[1., 0.]));
         assert_eq!(output.len(), 3);
     }
