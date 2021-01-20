@@ -12,7 +12,7 @@ pub fn softmax_activation(transfer: &Array1<f32>) -> Array1<f32> {
     softmax
 }
 
-pub fn softmax_derivative(activation: &Array1<f32>) -> Array1<f32> {
+pub fn softmax_derivative(transfer: &Array1<f32>) -> Array1<f32> {
     todo!()
 }
 
@@ -24,8 +24,8 @@ impl ActivationTrait for Softmax {
         softmax_activation(transfer)
     }
 
-    fn derive(&self, activation: &Array1<f32>) -> Array1<f32> {
-        softmax_derivative(activation)
+    fn derive(&self, transfer: &Array1<f32>) -> Array1<f32> {
+        softmax_derivative(transfer)
     }
 }
 

@@ -27,7 +27,7 @@ pub trait Cached: NeuronLayer {
     fn cache_transfer(&mut self, transfer: Array1<f32>);
     fn cache_activation(&mut self, activation: Array1<f32>);
 
-    fn apply_activation_derivative(&self, activation: &Array1<f32>) -> Array1<f32>;
+    fn apply_activation_derivative(&self, transfer: &Array1<f32>) -> Array1<f32>;
 
     fn forward(&mut self, input: &Array1<f32>) -> Array1<f32> {
         let transfer = self.apply_transfer(input);

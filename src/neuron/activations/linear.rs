@@ -8,8 +8,8 @@ pub fn linear_activation(transfer: &Array1<f32>) -> Array1<f32> {
     transfer.clone()
 }
 
-pub fn linear_derivate(activation: &Array1<f32>) -> Array1<f32> {
-    Array1::ones(activation.len()).map(|&x: &usize| x as f32)
+pub fn linear_derivate(transfer: &Array1<f32>) -> Array1<f32> {
+    Array1::ones(transfer.len()).map(|&x: &usize| x as f32)
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -20,8 +20,8 @@ impl ActivationTrait for Linear {
         linear_activation(transfer)
     }
 
-    fn derive(&self, activation: &Array1<f32>) -> Array1<f32> {
-        linear_derivate(activation)
+    fn derive(&self, transfer: &Array1<f32>) -> Array1<f32> {
+        linear_derivate(transfer)
     }
 }
 
