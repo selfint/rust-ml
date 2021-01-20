@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 
 use crate::neuron::layers::Cached;
 use crate::neuron::losses::Loss;
-use crate::neuron::networks::FeedForwardNetworkTrait;
+use crate::neuron::networks::CachedNetworkTrait;
 use crate::neuron::optimizers::OptimizeOnce;
 
 #[derive(Clone)]
@@ -18,19 +18,80 @@ impl SGD {
             loss,
         }
     }
+
+    fn get_gradients<N, L>(
+        &self,
+        network: &mut N,
+        prediction: &Array1<f32>,
+        expected: &Array1<f32>,
+    ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>)
+    where
+        L: Cached,
+        N: CachedNetworkTrait<L>,
+    {
+        let layers = network.get_layers();
+        let mut dc_da = self.loss.derivative(prediction, expected);
+
+        let mut network_weights_gradients = vec![];
+        let mut network_biases_gradients = vec![];
+        for i in (0..network.len()).rev() {
+            let layer = &layers[i];
+            let layer_weights = layer.get_weights();
+            let layer_transfers = layer.get_transfer().unwrap();
+            let activation_gradient = layer.apply_activation_derivative(layer_transfers);
+
+            let previous_layer_activations = if i == 0 {
+                layer.get_input().unwrap()
+            } else {
+                layers[i - 1].get_activation().unwrap()
+            };
+
+            // weights and biases gradients
+            let layer_outputs = layer.output_size();
+            let layer_inputs = layer.input_size();
+
+            let da_dt = &activation_gradient;
+            let layer_biases_gradient = dc_da * da_dt;
+            //eprintln!("bias gradient:\n{:?}", layer_biases_gradient);
+
+            let prev_dc_da = (dc_da * da_dt.dot(layer_weights)).sum();
+            //eprintln!("prev layer activation gradient:\n{:?}", prev_dc_da);
+
+            let mut layer_weights_gradients = Array2::zeros((layer_outputs, layer_inputs));
+            for j in 0..layer_outputs {
+                for k in 0..layer_inputs {
+                    let dt_dw = previous_layer_activations[k];
+                    layer_weights_gradients[[j, k]] += (dc_da * da_dt * dt_dw).sum();
+                }
+            }
+            //eprintln!("weight gradient:\n{:?}", layer_weights_gradients);
+
+            network_weights_gradients.insert(0, layer_weights_gradients);
+            network_biases_gradients.insert(0, layer_biases_gradient);
+
+            // BACK PROPAGATION: update dc_da to derivative of the cost with respect
+            // to the activation of the previous layer
+            dc_da = prev_dc_da;
+        }
+
+        (network_weights_gradients, network_biases_gradients)
+    }
 }
 
 impl<N, L> OptimizeOnce<N, L> for SGD
 where
     L: Cached,
-    N: FeedForwardNetworkTrait<L>,
+    N: CachedNetworkTrait<L>,
 {
     fn optimize_once(&self, network: &mut N, prediction: &Array1<f32>, expected: &Array1<f32>) {
-        let network_loss = self.loss.loss(prediction, expected);
-        let mut layer_loss = network_loss;
-        for layer in network.get_layers_mut().iter_mut().rev() {
-            // derivate of activation with respect to the
-            todo!()
+        let (weight_gradients, bias_gradients) = self.get_gradients(network, prediction, expected);
+
+        for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
+            **weights = weights.clone() - gradients * self.learning_rate;
+        }
+
+        for (biases, gradients) in network.get_biases_mut().iter_mut().zip(bias_gradients) {
+            **biases = biases.clone() - gradients * self.learning_rate;
         }
     }
 }
@@ -39,28 +100,37 @@ where
 mod tests {
     use super::*;
     use crate::neuron::activations::Sigmoid;
-    use crate::neuron::layers::FullyConnectedLayer;
-    use crate::neuron::losses::{mse, MSE};
-    use crate::neuron::networks::StandardFeedForwardNetwork;
+    use crate::neuron::layers::CachedLayer;
+    use crate::neuron::losses::{mse_loss, MSE};
+    use crate::neuron::networks::{CachedNetwork, CachedNetworkTrait, FeedForwardNetworkTrait};
+    use crate::neuron::transfers::FullyConnected;
 
     #[test]
-    fn test_sgd_optimize_once() {
-        let mut network =
-            StandardFeedForwardNetwork::new(vec![FullyConnectedLayer::new(2, 2, Sigmoid::new())]);
+    fn test_sgd_optimize_once_convergence() {
+        let mut network = CachedNetwork::new(vec![
+            CachedLayer::new(3, 2, FullyConnected::new(), Sigmoid::new()),
+            CachedLayer::new(2, 3, FullyConnected::new(), Sigmoid::new()),
+        ]);
 
         let input = array![1., 0.];
-        let expected = array![0.6, 0.4];
+        let expected = array![0.4, 0.6];
 
-        let first_prediction = network.predict(&input);
+        let optimizer = SGD::new(1., MSE::new());
 
-        let optimizer = SGD::new(0.01, MSE::new());
+        let mut prediction = network.predict(&input);
+        for _ in 0..100 {
+            prediction = network.predict_cached(&input);
+            optimizer.optimize_once(&mut network, &prediction, &expected);
+        }
 
-        let first_loss = mse(&first_prediction, &expected);
-        optimizer.optimize_once(&mut network, &first_prediction, &expected);
-
-        let second_prediction = network.predict(&input);
-        let second_loss = mse(&second_prediction, &expected);
-
-        assert!(second_loss < first_loss);
+        eprintln!(
+            "prediction: {} expected: {}",
+            prediction.to_string(),
+            expected.to_string()
+        );
+        assert!(
+            mse_loss(&prediction, &expected) <= 0.1,
+            "optimizer failed to converge"
+        );
     }
 }
