@@ -13,7 +13,8 @@ pub fn softmax_activation(transfer: &Array1<f32>) -> Array1<f32> {
 }
 
 pub fn softmax_derivative(transfer: &Array1<f32>) -> Array1<f32> {
-    todo!()
+    let _ = transfer;
+    todo!();
 }
 
 #[derive(Debug, Clone, Copy)]
