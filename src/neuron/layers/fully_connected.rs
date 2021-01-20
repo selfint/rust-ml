@@ -96,4 +96,8 @@ impl Cached for FullyConnectedLayer {
     fn cache_activation(&mut self, activation: Array1<f32>) {
         self.activation = Some(activation);
     }
+
+    fn apply_activation_derivative(&self, activation: &Array1<f32>) -> Array1<f32> {
+        self.activation_fn.derive(activation)
+    }
 }
