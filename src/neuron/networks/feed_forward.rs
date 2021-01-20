@@ -17,6 +17,10 @@ impl<L: NeuronLayer> StandardFeedForwardNetwork<L> {
 }
 
 impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
+    fn len(&self) -> usize {
+        self.layers.len()
+    }
+
     fn shape(&self) -> Vec<usize> {
         let mut shape = vec![self.layers[0].input_size()];
         for layer in self.layers.iter() {

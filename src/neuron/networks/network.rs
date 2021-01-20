@@ -3,6 +3,7 @@ use ndarray::prelude::*;
 use crate::neuron::layers::NeuronLayer;
 
 pub trait NetworkTrait<L: NeuronLayer>: Clone {
+    fn len(&self) -> usize;
     fn shape(&self) -> Vec<usize>;
     fn get_weights(&self) -> Vec<&Array2<f32>>;
     fn get_weights_mut(&mut self) -> Vec<&mut Array2<f32>>;
