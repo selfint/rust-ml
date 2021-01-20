@@ -81,7 +81,7 @@ mod tests {
         let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
         let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
 
-        let mut network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
+        let network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
 
         let input = [0., 1.];
         let output = network.predict(&arr1(&input));
@@ -95,8 +95,8 @@ mod tests {
         let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
 
         let layers = vec![l1, l2, l3];
-        let mut network1 = StandardFeedForwardNetwork::new(layers);
-        let mut network2 = network1.clone();
+        let network1 = StandardFeedForwardNetwork::new(layers);
+        let network2 = network1.clone();
 
         let input = [0., 1.];
         let output1 = network1.predict(&arr1(&input));
