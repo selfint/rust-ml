@@ -59,9 +59,9 @@ impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
 }
 
 impl<L: NeuronLayer> FeedForwardNetworkTrait<L> for StandardFeedForwardNetwork<L> {
-    fn predict(&mut self, input: &Array1<f32>) -> Array1<f32> {
+    fn predict(&self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
-            .iter_mut()
+            .iter()
             .fold(input.clone(), |prev_layer_output, layer| {
                 layer.forward(&prev_layer_output)
             })

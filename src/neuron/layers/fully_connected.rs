@@ -67,7 +67,7 @@ impl NeuronLayer for FullyConnectedLayer {
         self.activation_fn.activate(transfer)
     }
 
-    fn forward(&mut self, input: &Array1<f32>) -> Array1<f32> {
+    fn forward(&self, input: &Array1<f32>) -> Array1<f32> {
         self.apply_activation(&self.apply_transfer(input))
     }
 }

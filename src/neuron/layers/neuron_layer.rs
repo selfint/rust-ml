@@ -13,7 +13,7 @@ pub trait NeuronLayer: Clone {
     fn apply_transfer(&self, input: &Array1<f32>) -> Array1<f32>;
     fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32>;
 
-    fn forward(&mut self, input: &Array1<f32>) -> Array1<f32> {
+    fn forward(&self, input: &Array1<f32>) -> Array1<f32> {
         self.apply_activation(&self.apply_transfer(input))
     }
 }
@@ -29,7 +29,7 @@ pub trait Cached: NeuronLayer {
 
     fn apply_activation_derivative(&self, transfer: &Array1<f32>) -> Array1<f32>;
 
-    fn forward(&mut self, input: &Array1<f32>) -> Array1<f32> {
+    fn forward_cached(&mut self, input: &Array1<f32>) -> Array1<f32> {
         let transfer = self.apply_transfer(input);
         let activation = self.apply_activation(&transfer);
 
