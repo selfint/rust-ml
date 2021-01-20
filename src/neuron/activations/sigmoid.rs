@@ -7,7 +7,7 @@ pub fn sigmoid_activation(transfer: &Array1<f32>) -> Array1<f32> {
 }
 
 pub fn sigmoid_derivative(transfer: &Array1<f32>) -> Array1<f32> {
-    transfer.map(|&x| x * (1.0 - x))
+    sigmoid_activation(transfer).map(|s| s * (1.0 - s))
 }
 
 #[derive(Debug, Clone, Copy)]
