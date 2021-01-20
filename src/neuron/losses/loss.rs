@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use ndarray::prelude::*;
 pub trait LossTrait: CloneableTransfer + Debug {
     fn loss(&self, prediction: &Array1<f32>, expected: &Array1<f32>) -> f32;
+    fn derivative(&self, prediction: &Array1<f32>, expected: &Array1<f32>) -> f32;
 }
 
 pub type Loss = Box<dyn LossTrait>;

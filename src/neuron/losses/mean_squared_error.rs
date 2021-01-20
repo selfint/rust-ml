@@ -5,13 +5,21 @@ use crate::neuron::losses::{Loss, LossTrait};
 #[derive(Clone, Debug)]
 pub struct MSE;
 
-pub fn mse(prediction: &Array1<f32>, expected: &Array1<f32>) -> f32 {
+pub fn mse_loss(prediction: &Array1<f32>, expected: &Array1<f32>) -> f32 {
     (prediction - expected).map(|e| e * e).mean().unwrap()
+}
+
+pub fn mse_derivative(prediction: &Array1<f32>, expected: &Array1<f32>) -> f32 {
+    (1. / 2. * prediction.len() as f32) * (prediction - expected).sum()
 }
 
 impl LossTrait for MSE {
     fn loss(&self, prediction: &Array1<f32>, expected: &Array1<f32>) -> f32 {
-        mse(prediction, expected)
+        mse_loss(prediction, expected)
+    }
+
+    fn derivative(&self, prediction: &Array1<f32>, expected: &Array1<f32>) -> f32 {
+        mse_derivative(prediction, expected)
     }
 }
 
