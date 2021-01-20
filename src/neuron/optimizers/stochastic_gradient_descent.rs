@@ -52,10 +52,8 @@ impl SGD {
 
             let da_dt = &activation_gradient;
             let layer_biases_gradient = dc_da * da_dt;
-            //eprintln!("bias gradient:\n{:?}", layer_biases_gradient);
 
             let prev_dc_da = (dc_da * da_dt.dot(layer_weights)).sum();
-            //eprintln!("prev layer activation gradient:\n{:?}", prev_dc_da);
 
             let mut layer_weights_gradients = Array2::zeros((layer_outputs, layer_inputs));
             for j in 0..layer_outputs {
@@ -64,7 +62,6 @@ impl SGD {
                     layer_weights_gradients[[j, k]] += (dc_da * da_dt * dt_dw).sum();
                 }
             }
-            //eprintln!("weight gradient:\n{:?}", layer_weights_gradients);
 
             network_weights_gradients.insert(0, layer_weights_gradients);
             network_biases_gradients.insert(0, layer_biases_gradient);
