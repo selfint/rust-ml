@@ -7,7 +7,7 @@ mod softmax;
 mod softplus;
 
 pub use activation::{Activation, ActivationTrait};
-pub use leaky_relu::{leaky_relu_activation, leaky_relu_derivate, LeakyReLu};
+pub use leaky_relu::{leaky_relu_activation, leaky_relu_derivative, LeakyReLu};
 pub use linear::{linear_activation, linear_derivative, Linear};
 pub use relu::{relu_activation, relu_derivative, ReLu};
 pub use sigmoid::{sigmoid_activation, sigmoid_derivative, Sigmoid};
