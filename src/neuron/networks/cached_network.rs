@@ -1,5 +1,5 @@
 use crate::neuron::layers::Cached;
-use crate::neuron::networks::{NetworkTrait, CachedNetworkTrait, FeedForwardNetworkTrait};
+use crate::neuron::networks::{CachedNetworkTrait, FeedForwardNetworkTrait, NetworkTrait};
 use ndarray::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -76,4 +76,3 @@ impl<L: Cached> CachedNetworkTrait<L> for CachedNetwork<L> {
             })
     }
 }
-

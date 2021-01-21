@@ -1,7 +1,7 @@
 use ndarray::Array1;
 
-use crate::neuron::activations::{Activation, ActivationTrait};
 use crate::neuron::activations::sigmoid_activation;
+use crate::neuron::activations::{Activation, ActivationTrait};
 
 pub fn softplus_activation(transfer: &Array1<f32>) -> Array1<f32> {
     transfer.map(|&x| (1. + f32::exp(x)).ln())

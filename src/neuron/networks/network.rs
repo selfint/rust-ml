@@ -1,6 +1,6 @@
 use ndarray::prelude::*;
 
-use crate::neuron::layers::{NeuronLayer, Cached};
+use crate::neuron::layers::{Cached, NeuronLayer};
 
 pub trait NetworkTrait<L: NeuronLayer>: Clone {
     fn len(&self) -> usize;
