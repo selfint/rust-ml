@@ -3,7 +3,7 @@ use ndarray::prelude::*;
 use crate::neuron::layers::Cached;
 use crate::neuron::losses::Loss;
 use crate::neuron::networks::CachedNetworkTrait;
-use crate::neuron::optimizers::OptimizeOnce;
+use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
 
 #[derive(Clone)]
 pub struct SGD {
@@ -155,6 +155,73 @@ where
     }
 }
 
+impl<N, L> OptimizeBatch<N, L> for SGD
+where
+    L: Cached,
+    N: CachedNetworkTrait<L>,
+{
+    fn optimize_batch(
+        &self,
+        network: &mut N,
+        batch_inputs: &[Array1<f32>],
+        batch_expected: &[Array1<f32>],
+    ) {
+        assert_eq!(
+            batch_inputs.len(),
+            batch_expected.len(),
+            "batch inputs and expected must be of same length"
+        );
+
+        // nothing to do if batch is empty
+        if batch_inputs.is_empty() {
+            return;
+        }
+
+        // calculate avg weight and bias gradients
+        let (mut total_weights_gradients, mut total_biases_gradients) =
+            self.get_gradients(network, &batch_inputs[0], &batch_expected[0]);
+
+        let total_layers = network.len();
+        for (input, expected) in batch_inputs
+            .iter()
+            .skip(1)
+            .zip(batch_expected.iter().skip(1))
+        {
+            let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
+            for i in 0..total_layers {
+                total_weights_gradients[i] = &total_weights_gradients[i] + &weight_gradients[i];
+                total_biases_gradients[i] = &total_biases_gradients[i] + &bias_gradients[i];
+            }
+        }
+
+        let batch_size = batch_inputs.len() as f32;
+        let avg_weights_gradients: Vec<Array2<f32>> = total_weights_gradients
+            .iter()
+            .map(|g| g / batch_size)
+            .collect();
+        let avg_biases_gradients: Vec<Array1<f32>> = total_biases_gradients
+            .iter()
+            .map(|g| g / batch_size)
+            .collect();
+
+        for (weights, gradients) in network
+            .get_weights_mut()
+            .iter_mut()
+            .zip(avg_weights_gradients)
+        {
+            **weights = weights.clone() - gradients * self.learning_rate;
+        }
+
+        for (biases, gradients) in network
+            .get_biases_mut()
+            .iter_mut()
+            .zip(avg_biases_gradients)
+        {
+            **biases = biases.clone() - gradients * self.learning_rate;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -163,6 +230,56 @@ mod tests {
     use crate::neuron::losses::{mse_loss, MSE};
     use crate::neuron::networks::{CachedNetwork, FeedForwardNetworkTrait};
     use crate::neuron::transfers::FullyConnected;
+
+    #[test]
+    fn test_sgd_optimize_batch_convergence() {
+        let mut network = CachedNetwork::new(vec![
+            CachedLayer::new(3, 2, FullyConnected::new(), LeakyReLu::new()),
+            CachedLayer::new(1, 3, FullyConnected::new(), Sigmoid::new()),
+        ]);
+
+        let batch_inputs = vec![
+            array![1., 1.],
+            array![1., 0.],
+            array![0., 1.],
+        ];
+
+        let batch_expected = vec![
+            array![1.],
+            array![1.],
+            array![0.]
+        ];
+
+        let optimizer = SGD::new(1., MSE::new());
+
+        for _ in 0..10000 {
+            let mut cost = 0.;
+            for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
+                let prediction = network.predict(&input);
+                cost += mse_loss(&prediction, &expected).sum();
+            }
+            eprintln!("cost: {}", cost / 4.);
+            optimizer.optimize_batch(&mut network, &batch_inputs, &batch_expected);
+        }
+
+        let mut total_cost = 0.;
+        for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
+            let prediction = network.predict(&input);
+            let cost = mse_loss(&prediction, &expected).sum();
+            eprintln!(
+                "prediction: {} expected: {}",
+                prediction.to_string(),
+                expected.to_string()
+            );
+            total_cost += cost;
+        }
+
+        assert!(
+            total_cost <= 0.001,
+            "optimizer failed to converge (cost: {}>0.001)",
+            total_cost
+        );
+    }
 
     #[test]
     fn test_sgd_optimize_once_convergence() {
