@@ -19,6 +19,69 @@ impl SGD {
         }
     }
 
+    fn chain_rule_weights(
+        &self,
+        dl_da: &Array1<f32>,
+        da_dt: &Array1<f32>,
+        dt_dw: &Array1<f32>,
+    ) -> Array2<f32> {
+        // TODO: convert this to matrix multiplication - issue #35
+        let layer_outputs = da_dt.len();
+        let layer_inputs = dt_dw.len();
+        let mut layer_weights_gradients = Array2::zeros((layer_outputs, layer_inputs));
+
+        // derivatives of the transfer with respect to the weights
+        for j in 0..layer_outputs {
+            for k in 0..layer_inputs {
+                // derivatve of transfer with respect to this weight
+                let dt_dw_jk = dt_dw[k];
+
+                // derivatives of the activation of the weight's dst node
+                // with respect to the transfer of the weight's src node
+                let da_dt_j = da_dt[j];
+
+                // derivatives of the loss with respect to the activation of
+                // this weight's dst node
+                let dl_da_j = dl_da[j];
+
+                // chain rule - derivatives of the loss with respect to this weight
+                layer_weights_gradients[[j, k]] = dl_da_j * da_dt_j * dt_dw_jk;
+            }
+        }
+
+        layer_weights_gradients
+    }
+
+    fn chain_rule_biases(&self, dl_da: &Array1<f32>, da_dt: &Array1<f32>) -> Array1<f32> {
+        // derivatives of the transfers with respect to the biases (dt_db) is 1
+        // so da_db = da_dt * dt_db = da_dt * 1 = da_dt
+        let da_db = da_dt;
+
+        // chain rule - derivatives of the loss with respect to the biases
+        let layer_biases_gradient = dl_da * da_db;
+
+        layer_biases_gradient
+    }
+
+    fn chain_rule_previous_activations(
+        &self,
+        dl_da: &Array1<f32>,
+        da_dt: &Array1<f32>,
+        dt_dap: &Array2<f32>,
+    ) -> Array1<f32> {
+        // since each node in the previous can affect multiple nodes in this layer
+        // the derivatives are summed over all nodes affected in this layer (Axis(0))
+        let dl_da_sum = dl_da.sum();
+        let da_dt_sum = da_dt.sum();
+        let dt_dap_sum = dt_dap.sum_axis(Axis(0));
+
+        // chain rule - derivatives of loss with respect to previous layer's
+        // activations
+        let dl_dap = dl_da_sum * da_dt_sum * dt_dap_sum;
+
+        dl_dap
+    }
+
     fn get_gradients<N, L>(
         &self,
         network: &mut N,
@@ -29,71 +92,41 @@ impl SGD {
         L: Cached,
         N: CachedNetworkTrait<L>,
     {
-        let layers = network.get_layers();
-
         let mut network_weights_gradients = vec![];
         let mut network_biases_gradients = vec![];
 
-        // derivative of the loss with respect to the last layers activation
+        // derivatives of the loss with respect to the last layers activation
         let mut dl_da = Box::new(self.loss.derivative(prediction, expected));
 
-        for layer in layers.iter().rev() {
-            // derivative of the activations with respect to the transfers
-            let da_dt = layer.apply_activation_derivative(layer.get_transfer().unwrap());
+        for layer in network.get_layers().iter().rev() {
+            // derivatives of the activations with respect to the transfers
+            let da_dt = layer.apply_activation_derivative(layer.get_transfer().expect("cached layer transfer is None (help: call `predict_cached` on the network or `forward_cached` on the layer, instead of `predict` or `forward`, respectively"));
 
-            // calculate bias gradients
-            // chain rule - derivative of the loss with respect to the biases
-            //
-            // derivative of the transfers with respect to the biases (dt_db) is 1
-            // so da_db = da_dt * dt_db = da_dt
-            let da_db = &da_dt;
+            // derivatives of the transfers with respect to the weights - these are
+            // the activations of the previous layer, which is also the input to the
+            // current layer
+            let dt_dw = layer.get_input().expect("cached layer input is None (help: call `predict_cached` on the network or `forward_cached` on the layer, instead of `predict` or `forward`, respectively");
 
-            let layer_biases_gradient: Array1<f32> = dl_da.as_ref() * da_db;
-            network_biases_gradients.insert(0, layer_biases_gradient);
-
-            // calculate weight gradients
-            // TODO: convert this to matrix multiplication - issue #35
-            let layer_outputs = layer.output_size();
-            let layer_inputs = layer.input_size();
-            let mut layer_weights_gradients = Array2::zeros((layer_outputs, layer_inputs));
-
-            // derivative of the transfer with respect to the weights•
-            let dt_dw = layer.get_input().unwrap();
-            for j in 0..layer_outputs {
-                for k in 0..layer_inputs {
-                    // derivate of transfer with respect to this weight
-                    let dt_dw_jk = dt_dw[k];
-
-                    // derivative of the activation of the weight's dst node
-                    // with respect to the transfer of the weight's src node
-                    let da_dt_j = da_dt[j];
-
-                    // derivative of the loss with respect to the activation of
-                    // this weight's dst noe
-                    let dl_da_j = dl_da[j];
-
-                    // chain rule - derivative of the loss with respect to this weight
-                    layer_weights_gradients[[j, k]] = dl_da_j * da_dt_j * dt_dw_jk;
-                }
-            }
-            network_weights_gradients.insert(0, layer_weights_gradients);
-
-            // calculate previous layer loss
-            // derivative of the transfers with respect to the previous layer's
+            // derivatives of the transfers with respect to the previous layer's
             // activations - these are all the weights from each node in the
             // previous layer
-            let dt_dap: &Array2<f32> = &layer.get_weights();
+            let dt_dap = layer.get_weights();
 
-            // chain rule - derivate of loss with respect to previous layer's
-            // activations
-            //
-            // since each node in the previous can affect multiple nodes in this layer
-            // the derivative is summed over all nodes affected in this layer (Axis(0))
-            let dl_da_prev: Array1<f32> = dl_da.sum() * &da_dt.sum() * dt_dap.sum_axis(Axis(0));
+            // derivatives of the losses with respect to the biases
+            let dl_db = self.chain_rule_biases(&dl_da, &da_dt);
+            network_biases_gradients.insert(0, dl_db);
 
-            // BACK PROPAGATION: set dc_da as the previous layer's dc_da, propagating
-            // the loss back to the previous layers
-            dl_da = Box::new(dl_da_prev);
+            // derivatives of the losses with respect to the weights
+            let dl_dw = self.chain_rule_weights(&dl_da, &da_dt, &dt_dw);
+            network_weights_gradients.insert(0, dl_dw);
+
+            // derivatives of the losses with respect to the previous layers activations
+            let dl_dap = self.chain_rule_previous_activations(&dl_da, &da_dt, &dt_dap);
+
+            // BACK PROPAGATION: set the loss with respect to the current layer's
+            // activations as the the loss with respect to the *previous* layer's
+            // activations, propagating the loss to the previous layers
+            dl_da = Box::new(dl_dap);
         }
 
         (network_weights_gradients, network_biases_gradients)
@@ -121,7 +154,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::neuron::activations::{ReLu, Sigmoid, Softplus, LeakyReLu};
+    use crate::neuron::activations::{LeakyReLu, ReLu, Sigmoid, Softplus};
     use crate::neuron::layers::CachedLayer;
     use crate::neuron::losses::{mse_loss, MSE};
     use crate::neuron::networks::{CachedNetwork, CachedNetworkTrait, FeedForwardNetworkTrait};
