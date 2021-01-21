@@ -85,7 +85,7 @@ impl SGD {
     fn get_gradients<N, L>(
         &self,
         network: &mut N,
-        prediction: &Array1<f32>,
+        input: &Array1<f32>,
         expected: &Array1<f32>,
     ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>)
     where
@@ -95,17 +95,21 @@ impl SGD {
         let mut network_weights_gradients = vec![];
         let mut network_biases_gradients = vec![];
 
+        let prediction = network.predict_cached(input);
+
         // derivatives of the loss with respect to the last layers activation
-        let mut dl_da = Box::new(self.loss.derivative(prediction, expected));
+        let mut dl_da = Box::new(self.loss.derivative(&prediction, expected));
 
         for layer in network.get_layers().iter().rev() {
             // derivatives of the activations with respect to the transfers
-            let da_dt = layer.apply_activation_derivative(layer.get_transfer().expect("cached layer transfer is None (help: call `predict_cached` on the network or `forward_cached` on the layer, instead of `predict` or `forward`, respectively"));
+            // NOTE: unwrap is safe since we called `predict_cached`
+            let da_dt = layer.apply_activation_derivative(layer.get_transfer().unwrap());
 
             // derivatives of the transfers with respect to the weights - these are
             // the activations of the previous layer, which is also the input to the
             // current layer
-            let dt_dw = layer.get_input().expect("cached layer input is None (help: call `predict_cached` on the network or `forward_cached` on the layer, instead of `predict` or `forward`, respectively");
+            // NOTE: unwrap is safe since we called `predict_cached`
+            let dt_dw = layer.get_input().unwrap();
 
             // derivatives of the transfers with respect to the previous layer's
             // activations - these are all the weights from each node in the
@@ -138,8 +142,8 @@ where
     L: Cached,
     N: CachedNetworkTrait<L>,
 {
-    fn optimize_once(&self, network: &mut N, prediction: &Array1<f32>, expected: &Array1<f32>) {
-        let (weight_gradients, bias_gradients) = self.get_gradients(network, prediction, expected);
+    fn optimize_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>) {
+        let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
             **weights = weights.clone() - gradients * self.learning_rate;
@@ -157,7 +161,7 @@ mod tests {
     use crate::neuron::activations::{LeakyReLu, ReLu, Sigmoid, Softplus};
     use crate::neuron::layers::CachedLayer;
     use crate::neuron::losses::{mse_loss, MSE};
-    use crate::neuron::networks::{CachedNetwork, CachedNetworkTrait, FeedForwardNetworkTrait};
+    use crate::neuron::networks::{CachedNetwork, FeedForwardNetworkTrait};
     use crate::neuron::transfers::FullyConnected;
 
     #[test]
@@ -175,8 +179,7 @@ mod tests {
         let optimizer = SGD::new(0.1, MSE::new());
 
         for _ in 0..200 {
-            let prediction = network.predict_cached(&input);
-            optimizer.optimize_once(&mut network, &prediction, &expected);
+            optimizer.optimize_once(&mut network, &input, &expected);
         }
 
         let prediction = network.predict(&input);

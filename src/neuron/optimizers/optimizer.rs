@@ -8,5 +8,5 @@ where
     L: Cached,
     N: CachedNetworkTrait<L>,
 {
-    fn optimize_once(&self, network: &mut N, prediction: &Array1<f32>, expected: &Array1<f32>);
+    fn optimize_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>);
 }
