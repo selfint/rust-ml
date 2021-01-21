@@ -6,7 +6,7 @@ pub fn relu_activation(transfer: &Array1<f32>) -> Array1<f32> {
     transfer.map(|&x| if x > 0. { x } else { 0. })
 }
 
-pub fn relu_derivate(transfer: &Array1<f32>) -> Array1<f32> {
+pub fn relu_derivative(transfer: &Array1<f32>) -> Array1<f32> {
     transfer.map(|&x| if x > 0. { 1. } else { 0. })
 }
 
@@ -19,7 +19,7 @@ impl ActivationTrait for ReLu {
     }
 
     fn derive(&self, transfer: &Array1<f32>) -> Array1<f32> {
-        relu_derivate(transfer)
+        relu_derivative(transfer)
     }
 }
 
