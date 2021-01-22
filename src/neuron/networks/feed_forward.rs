@@ -17,6 +17,10 @@ impl<L: NeuronLayer> StandardFeedForwardNetwork<L> {
 }
 
 impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
+    fn len(&self) -> usize {
+        self.layers.len()
+    }
+
     fn shape(&self) -> Vec<usize> {
         let mut shape = vec![self.layers[0].input_size()];
         for layer in self.layers.iter() {
@@ -55,9 +59,9 @@ impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
 }
 
 impl<L: NeuronLayer> FeedForwardNetworkTrait<L> for StandardFeedForwardNetwork<L> {
-    fn predict(&mut self, input: &Array1<f32>) -> Array1<f32> {
+    fn predict(&self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
-            .iter_mut()
+            .iter()
             .fold(input.clone(), |prev_layer_output, layer| {
                 layer.forward(&prev_layer_output)
             })
@@ -77,7 +81,7 @@ mod tests {
         let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
         let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
 
-        let mut network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
+        let network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
 
         let input = [0., 1.];
         let output = network.predict(&arr1(&input));
@@ -91,8 +95,8 @@ mod tests {
         let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
 
         let layers = vec![l1, l2, l3];
-        let mut network1 = StandardFeedForwardNetwork::new(layers);
-        let mut network2 = network1.clone();
+        let network1 = StandardFeedForwardNetwork::new(layers);
+        let network2 = network1.clone();
 
         let input = [0., 1.];
         let output1 = network1.predict(&arr1(&input));

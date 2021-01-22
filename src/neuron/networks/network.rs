@@ -1,8 +1,9 @@
 use ndarray::prelude::*;
 
-use crate::neuron::layers::NeuronLayer;
+use crate::neuron::layers::{Cached, NeuronLayer};
 
 pub trait NetworkTrait<L: NeuronLayer>: Clone {
+    fn len(&self) -> usize;
     fn shape(&self) -> Vec<usize>;
     fn get_weights(&self) -> Vec<&Array2<f32>>;
     fn get_weights_mut(&mut self) -> Vec<&mut Array2<f32>>;
@@ -13,5 +14,9 @@ pub trait NetworkTrait<L: NeuronLayer>: Clone {
 }
 
 pub trait FeedForwardNetworkTrait<L: NeuronLayer>: NetworkTrait<L> {
-    fn predict(&mut self, input: &Array1<f32>) -> Array1<f32>;
+    fn predict(&self, input: &Array1<f32>) -> Array1<f32>;
+}
+
+pub trait CachedNetworkTrait<L: NeuronLayer + Cached>: NetworkTrait<L> {
+    fn predict_cached(&mut self, input: &Array1<f32>) -> Array1<f32>;
 }
