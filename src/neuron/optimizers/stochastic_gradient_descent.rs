@@ -227,43 +227,53 @@ mod tests {
     use super::*;
     use crate::neuron::activations::{LeakyReLu, ReLu, Sigmoid, Softplus};
     use crate::neuron::layers::CachedLayer;
-    use crate::neuron::losses::{mse_loss, MSE};
+    use crate::neuron::losses::{mse_loss, sse_loss, MSE, SSE};
     use crate::neuron::networks::{CachedNetwork, FeedForwardNetworkTrait};
     use crate::neuron::transfers::FullyConnected;
 
     #[test]
-    fn test_sgd_optimize_batch_convergence() {
+    fn test_sgd_optimize_batch_sin_convergence() {
         let mut network = CachedNetwork::new(vec![
-            CachedLayer::new(3, 2, FullyConnected::new(), LeakyReLu::new()),
+            CachedLayer::new(3, 1, FullyConnected::new(), Sigmoid::new()),
             CachedLayer::new(1, 3, FullyConnected::new(), Sigmoid::new()),
         ]);
 
-        let batch_inputs = vec![array![1., 1.], array![1., 0.], array![0., 1.]];
+        let batch_inputs: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
+            .iter()
+            .map(|&x| array![x])
+            .collect();
 
-        let batch_expected = vec![array![1.], array![1.], array![0.]];
+        let batch_expected: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
+            .iter()
+            .map(|&x| array![(x as f32).sin()])
+            .collect();
 
-        let optimizer = SGD::new(1., MSE::new());
+        let optimizer = SGD::new(5., SSE::new());
 
-        for _ in 0..10000 {
+        for e in 0..1_000 {
             let mut cost = 0.;
             for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
                 let prediction = network.predict(&input);
-                cost += mse_loss(&prediction, &expected).sum();
+                cost += sse_loss(&prediction, &expected).sum();
             }
-            eprintln!("cost: {}", cost / 4.);
+
+            if e & 100 == 0 {
+                eprintln!("epoch: {} cost: {}", e, cost / 100.);
+            }
+
             optimizer.optimize_batch(&mut network, &batch_inputs, &batch_expected);
         }
 
         let mut total_cost = 0.;
         for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
             let prediction = network.predict(&input);
-            let cost = mse_loss(&prediction, &expected).sum();
+            let cost = sse_loss(&prediction, &expected).sum();
             eprintln!(
                 "prediction: {} expected: {}",
                 prediction.to_string(),
                 expected.to_string()
             );
-            total_cost += cost;
+            total_cost += cost / 100.;
         }
 
         assert!(
