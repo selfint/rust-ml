@@ -32,17 +32,17 @@ impl SGD {
 
         // derivatives of the transfer with respect to the weights
         for j in 0..layer_outputs {
+            // derivatives of the activation of the weight's dst node
+            // with respect to the transfer of the weight's src node
+            let da_dt_j = da_dt[j];
+
+            // derivatives of the loss with respect to the activation of
+            // this weight's dst node
+            let dl_da_j = dl_da[j];
+
             for k in 0..layer_inputs {
                 // derivatve of transfer with respect to this weight
                 let dt_dw_jk = dt_dw[k];
-
-                // derivatives of the activation of the weight's dst node
-                // with respect to the transfer of the weight's src node
-                let da_dt_j = da_dt[j];
-
-                // derivatives of the loss with respect to the activation of
-                // this weight's dst node
-                let dl_da_j = dl_da[j];
 
                 // chain rule - derivatives of the loss with respect to this weight
                 layer_weights_gradients[[j, k]] = dl_da_j * da_dt_j * dt_dw_jk;
@@ -238,17 +238,9 @@ mod tests {
             CachedLayer::new(1, 3, FullyConnected::new(), Sigmoid::new()),
         ]);
 
-        let batch_inputs = vec![
-            array![1., 1.],
-            array![1., 0.],
-            array![0., 1.],
-        ];
+        let batch_inputs = vec![array![1., 1.], array![1., 0.], array![0., 1.]];
 
-        let batch_expected = vec![
-            array![1.],
-            array![1.],
-            array![0.]
-        ];
+        let batch_expected = vec![array![1.], array![1.], array![0.]];
 
         let optimizer = SGD::new(1., MSE::new());
 
