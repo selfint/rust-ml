@@ -3,9 +3,9 @@ use std::error::Error;
 use ndarray::prelude::*;
 use ndarray_stats::QuantileExt;
 
-use rust_ml::neuron::activations::{LeakyReLu, ReLu, Sigmoid};
+use rust_ml::neuron::activations::{LeakyReLu, Linear, ReLu, Sigmoid};
 use rust_ml::neuron::layers::CachedLayer;
-use rust_ml::neuron::losses::{mse_loss, MSE};
+use rust_ml::neuron::losses::{cce_loss, CCE};
 use rust_ml::neuron::networks::{CachedNetwork, Regression};
 use rust_ml::neuron::optimizers::{OptimizeBatch, OptimizeOnce, SGD};
 use rust_ml::neuron::transfers::FullyConnected;
@@ -27,9 +27,9 @@ fn read_dataset(
             .collect::<Vec<u8>>();
 
         // one-hot encode label
-        //let mut label = Array1::zeros(10);
-        //label[record[0] as usize] = 1.;
-        let label = arr1(&[record[0] as f32 / 10.]);
+        let mut label = Array1::zeros(10);
+        label[record[0] as usize] = 1.;
+        //let label = arr1(&[record[0] as f32 / 10.]);
 
         // skip label and normalize row data
         // to be between 0 and 1
@@ -68,41 +68,72 @@ fn read_training_data() -> Result<
 
 fn main() {
     let (train_x, train_y, test_x, test_y) = read_training_data().expect("failed to load datasets");
-    let sample_train_x = &train_x[0..100];
-    let sample_train_y = &train_y[0..100];
-    let sample_test_x = &test_x[0..100];
-    let sample_test_y = &test_y[0..100];
+    let samples = 1_000;
+    let sample_train_x = &train_x[0..samples];
+    let sample_train_y = &train_y[0..samples];
+    let sample_test_x = &test_x[0..samples];
+    let sample_test_y = &test_y[0..samples];
 
     let mut network = CachedNetwork::new(vec![
         CachedLayer::new(10, 784, FullyConnected::new(), Sigmoid::new()),
         CachedLayer::new(10, 10, FullyConnected::new(), Sigmoid::new()),
-        CachedLayer::new(1, 10, FullyConnected::new(), Sigmoid::new()),
+        CachedLayer::new(10, 10, FullyConnected::new(), Linear::new()),
     ]);
 
-    let epochs = 10_000;
-    let batch_size = 100;
-    let mut learning_rate = 0.1;
+    let epochs = 100_000;
+    let batch_size = 10;
+    let mut learning_rate = 10.;
     learning_rate /= batch_size as f32;
+    let batches = sample_train_x.len() / batch_size;
 
-    let optimizer = SGD::new(learning_rate, MSE::new());
+    let optimizer = SGD::new(learning_rate, CCE::new());
     for e in 0..epochs {
         // split data into batches
-        let batches = sample_train_x.len() / batch_size;
         for b in 0..batches {
-            if b % batches / 10 == 0 {
-                println!("epoch {} batch {}", e, b);
-            }
-
             let batch_inputs = &sample_train_x[b..(b + batch_size)];
             let batch_expected = &sample_train_y[b..(b + batch_size)];
+
             optimizer.optimize_batch(&mut network, batch_inputs, batch_expected);
+        }
+
+        if e % 100 == 0 {
+            let mut train_loss = 0.;
+            let mut train_mistakes = 0.;
+            for (input, expected) in sample_train_x.iter().zip(sample_train_y.iter()) {
+                let prediction = network.predict(input);
+                if prediction.argmax().unwrap() != expected.argmax().unwrap() {
+                    train_mistakes += 1.;
+                }
+
+                train_loss += cce_loss(&prediction, expected).sum();
+            }
+
+            let mut test_loss = 0.;
+            let mut test_mistakes = 0.;
+            for (input, expected) in sample_test_x.iter().zip(sample_test_y.iter()) {
+                let prediction = network.predict(input);
+                if prediction.argmax().unwrap() != expected.argmax().unwrap() {
+                    test_mistakes += 1.;
+                }
+
+                test_loss += cce_loss(&prediction, expected).sum();
+            }
+
+            println!(
+                "epoch {} | train loss: {} accuracy: {}% | test loss: {} accuracy: {}%",
+                e,
+                train_loss / (samples as f32),
+                (1. - (train_mistakes / (samples as f32))) * 100.,
+                test_loss / (samples as f32),
+                (1. - (test_mistakes / (samples as f32))) * 100.,
+            );
         }
     }
 
     let mut score = 0.;
     for (x, y) in sample_test_x.iter().zip(sample_test_y.iter()) {
-        let prediction = (network.predict(x)[0] * 10.).round() / 10.;
-        let expected = y[0];
+        let prediction = network.predict(x).argmax().unwrap();
+        let expected = y.argmax().unwrap();
         if prediction == expected {
             score += 1.;
             println!(
