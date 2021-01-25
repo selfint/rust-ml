@@ -41,7 +41,7 @@ impl SGD {
             let dl_da_j = dl_da[j];
 
             for k in 0..layer_inputs {
-                // derivatve of transfer with respect to this weight
+                // derivative of transfer with respect to this weight
                 let dt_dw_jk = dt_dw[k];
 
                 // chain rule - derivatives of the loss with respect to this weight
