@@ -71,7 +71,7 @@ impl<L: NeuronLayer> Regression<L> for StandardFeedForwardNetwork<L> {
 
 #[cfg(test)]
 mod tests {
-    use crate::neuron::activations::{ReLu, Sigmoid, Softmax};
+    use crate::neuron::activations::{ReLu, Sigmoid, Linear};
     use crate::neuron::layers::Layer;
     use crate::neuron::transfers::FullyConnected;
 
@@ -81,7 +81,7 @@ mod tests {
     fn test_network_predict() {
         let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
         let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
-        let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
+        let l3 = Layer::new(1, 4, FullyConnected::new(), Linear::new());
 
         let network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
 
@@ -94,7 +94,7 @@ mod tests {
     fn test_network_is_cloneable() {
         let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
         let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
-        let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
+        let l3 = Layer::new(1, 4, FullyConnected::new(), Linear::new());
 
         let layers = vec![l1, l2, l3];
         let network1 = StandardFeedForwardNetwork::new(layers);

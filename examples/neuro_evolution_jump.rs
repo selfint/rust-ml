@@ -1,6 +1,6 @@
 use std::{thread, time};
 
-use rust_ml::neuron::activations::{ReLu, Sigmoid, Softmax};
+use rust_ml::neuron::activations::{ReLu, Sigmoid, Linear};
 use rust_ml::neuron::layers::Layer;
 use rust_ml::neuron::networks::StandardFeedForwardNetwork;
 use rust_ml::neuron::transfers::FullyConnected;
@@ -20,7 +20,7 @@ fn main() {
         Layer::new(3, env_observation_space, FullyConnected::new(), ReLu::new()),
         // bring a bazooka to a knife fight
         Layer::new(4, 3, FullyConnected::new(), Sigmoid::new()),
-        Layer::new(env_action_space, 4, FullyConnected::new(), Softmax::new()),
+        Layer::new(env_action_space, 4, FullyConnected::new(), Linear::new()),
     ];
     let network = StandardFeedForwardNetwork::new(layers);
 
