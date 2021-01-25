@@ -1,8 +1,6 @@
 pub use cached_network::CachedNetwork;
 pub use feed_forward::StandardFeedForwardNetwork;
-pub use network::{
-    CachedClassification, CachedRegression, Classification, NetworkTrait, Regression,
-};
+pub use network::{CachedRegression, Network, Regression};
 
 mod cached_network;
 mod feed_forward;

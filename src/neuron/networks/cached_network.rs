@@ -1,7 +1,7 @@
 use ndarray::prelude::*;
 
 use crate::neuron::layers::Cached;
-use crate::neuron::networks::{CachedRegression, NetworkTrait, Regression};
+use crate::neuron::networks::{CachedRegression, Network, Regression};
 
 #[derive(Debug, Clone)]
 pub struct CachedNetwork<L: Cached> {
@@ -16,7 +16,7 @@ impl<L: Cached> CachedNetwork<L> {
     }
 }
 
-impl<L: Cached> NetworkTrait<L> for CachedNetwork<L> {
+impl<L: Cached> Network<L> for CachedNetwork<L> {
     fn len(&self) -> usize {
         self.layers.len()
     }

@@ -1,7 +1,7 @@
 use ndarray::prelude::*;
 
 use crate::neuron::layers::NeuronLayer;
-use crate::neuron::networks::NetworkTrait;
+use crate::neuron::networks::Network;
 use crate::neuron::networks::Regression;
 
 #[derive(Debug, Clone)]
@@ -17,7 +17,7 @@ impl<L: NeuronLayer> StandardFeedForwardNetwork<L> {
     }
 }
 
-impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
+impl<L: NeuronLayer> Network<L> for StandardFeedForwardNetwork<L> {
     fn len(&self) -> usize {
         self.layers.len()
     }

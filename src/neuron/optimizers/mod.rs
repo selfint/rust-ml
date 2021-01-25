@@ -1,4 +1,4 @@
-pub use optimizer::{OptimizeRegressorBatch, OptimizeRegressorOnce};
+pub use optimizer::{OptimizeBatch, OptimizeOnce};
 pub use stochastic_gradient_descent::SGD;
 
 mod optimizer;

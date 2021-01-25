@@ -3,7 +3,7 @@ use ndarray::prelude::*;
 use crate::neuron::layers::Cached;
 use crate::neuron::losses::Loss;
 use crate::neuron::networks::CachedRegression;
-use crate::neuron::optimizers::{OptimizeRegressorBatch, OptimizeRegressorOnce};
+use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
 
 #[derive(Clone)]
 pub struct SGD {
@@ -82,7 +82,7 @@ impl SGD {
         dl_dap
     }
 
-    fn get_regressor_gradients<N, L>(
+    fn get_gradients<N, L>(
         &self,
         network: &mut N,
         input: &Array1<f32>,
@@ -137,19 +137,19 @@ impl SGD {
     }
 }
 
-impl<N, L> OptimizeRegressorOnce<N, L> for SGD
+impl<N, L> OptimizeOnce<N, L> for SGD
 where
     L: Cached,
     N: CachedRegression<L>,
 {
-    fn optimize_regressor_once(
+    fn optimize_once(
         &self,
         network: &mut N,
         input: &Array1<f32>,
         expected: &Array1<f32>,
     ) {
         let (weight_gradients, bias_gradients) =
-            self.get_regressor_gradients(network, input, expected);
+            self.get_gradients(network, input, expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
             **weights = weights.clone() - gradients * self.learning_rate;
@@ -161,12 +161,12 @@ where
     }
 }
 
-impl<N, L> OptimizeRegressorBatch<N, L> for SGD
+impl<N, L> OptimizeBatch<N, L> for SGD
 where
     L: Cached,
     N: CachedRegression<L>,
 {
-    fn optimize_regressor_batch(
+    fn optimize_batch(
         &self,
         network: &mut N,
         batch_inputs: &[Array1<f32>],
@@ -185,7 +185,7 @@ where
 
         // calculate avg weight and bias gradients
         let (mut total_weights_gradients, mut total_biases_gradients) =
-            self.get_regressor_gradients(network, &batch_inputs[0], &batch_expected[0]);
+            self.get_gradients(network, &batch_inputs[0], &batch_expected[0]);
 
         let total_layers = network.len();
         for (input, expected) in batch_inputs
@@ -194,7 +194,7 @@ where
             .zip(batch_expected.iter().skip(1))
         {
             let (weight_gradients, bias_gradients) =
-                self.get_regressor_gradients(network, input, expected);
+                self.get_gradients(network, input, expected);
             for i in 0..total_layers {
                 total_weights_gradients[i] = &total_weights_gradients[i] + &weight_gradients[i];
                 total_biases_gradients[i] = &total_biases_gradients[i] + &bias_gradients[i];
@@ -269,7 +269,7 @@ mod tests {
                 eprintln!("epoch: {} cost: {}", e, cost / 100.);
             }
 
-            optimizer.optimize_regressor_batch(&mut network, &batch_inputs, &batch_expected);
+            optimizer.optimize_batch(&mut network, &batch_inputs, &batch_expected);
         }
 
         let mut total_cost = 0.;
@@ -306,7 +306,7 @@ mod tests {
         let optimizer = SGD::new(0.1, MSE::new());
 
         for _ in 0..200 {
-            optimizer.optimize_regressor_once(&mut network, &input, &expected);
+            optimizer.optimize_once(&mut network, &input, &expected);
         }
 
         let prediction = network.predict(&input);
