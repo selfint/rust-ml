@@ -82,7 +82,7 @@ impl SGD {
         dl_dap
     }
 
-    fn get_gradients<N, L>(
+    fn get_regressor_gradients<N, L>(
         &self,
         network: &mut N,
         input: &Array1<f32>,
@@ -148,7 +148,8 @@ where
         input: &Array1<f32>,
         expected: &Array1<f32>,
     ) {
-        let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
+        let (weight_gradients, bias_gradients) =
+            self.get_regressor_gradients(network, input, expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
             **weights = weights.clone() - gradients * self.learning_rate;
@@ -184,7 +185,7 @@ where
 
         // calculate avg weight and bias gradients
         let (mut total_weights_gradients, mut total_biases_gradients) =
-            self.get_gradients(network, &batch_inputs[0], &batch_expected[0]);
+            self.get_regressor_gradients(network, &batch_inputs[0], &batch_expected[0]);
 
         let total_layers = network.len();
         for (input, expected) in batch_inputs
@@ -192,7 +193,8 @@ where
             .skip(1)
             .zip(batch_expected.iter().skip(1))
         {
-            let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
+            let (weight_gradients, bias_gradients) =
+                self.get_regressor_gradients(network, input, expected);
             for i in 0..total_layers {
                 total_weights_gradients[i] = &total_weights_gradients[i] + &weight_gradients[i];
                 total_biases_gradients[i] = &total_biases_gradients[i] + &bias_gradients[i];
