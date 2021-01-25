@@ -16,5 +16,10 @@ where
     L: Cached,
     N: CachedRegression<L>,
 {
-    fn optimize_regressor_batch(&self, network: &mut N, batch_inputs: &[Array1<f32>], batch_expected: &[Array1<f32>]);
+    fn optimize_regressor_batch(
+        &self,
+        network: &mut N,
+        batch_inputs: &[Array1<f32>],
+        batch_expected: &[Array1<f32>],
+    );
 }

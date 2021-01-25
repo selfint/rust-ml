@@ -1,7 +1,8 @@
-use crate::neuron::layers::NeuronLayer;
-use crate::neuron::networks::Regression;
-use crate::neuron::networks::NetworkTrait;
 use ndarray::prelude::*;
+
+use crate::neuron::layers::NeuronLayer;
+use crate::neuron::networks::NetworkTrait;
+use crate::neuron::networks::Regression;
 
 #[derive(Debug, Clone)]
 pub struct StandardFeedForwardNetwork<L: NeuronLayer> {
@@ -70,10 +71,11 @@ impl<L: NeuronLayer> Regression<L> for StandardFeedForwardNetwork<L> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::neuron::activations::{ReLu, Sigmoid, Softmax};
     use crate::neuron::layers::Layer;
     use crate::neuron::transfers::FullyConnected;
+
+    use super::*;
 
     #[test]
     fn test_network_predict() {

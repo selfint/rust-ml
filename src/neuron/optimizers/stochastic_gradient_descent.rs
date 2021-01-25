@@ -142,7 +142,12 @@ where
     L: Cached,
     N: CachedRegression<L>,
 {
-    fn optimize_regressor_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>) {
+    fn optimize_regressor_once(
+        &self,
+        network: &mut N,
+        input: &Array1<f32>,
+        expected: &Array1<f32>,
+    ) {
         let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
@@ -224,12 +229,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::neuron::activations::{LeakyReLu, ReLu, Sigmoid, Softplus};
     use crate::neuron::layers::CachedLayer;
     use crate::neuron::losses::{mse_loss, sse_loss, MSE, SSE};
     use crate::neuron::networks::{CachedNetwork, Regression};
     use crate::neuron::transfers::FullyConnected;
+
+    use super::*;
 
     #[test]
     fn test_sgd_optimize_batch_sin_convergence() {

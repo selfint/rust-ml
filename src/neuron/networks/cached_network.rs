@@ -1,6 +1,7 @@
-use crate::neuron::layers::Cached;
-use crate::neuron::networks::{CachedRegression, Regression, NetworkTrait};
 use ndarray::prelude::*;
+
+use crate::neuron::layers::Cached;
+use crate::neuron::networks::{CachedRegression, NetworkTrait, Regression};
 
 #[derive(Debug, Clone)]
 pub struct CachedNetwork<L: Cached> {

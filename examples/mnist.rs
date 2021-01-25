@@ -7,7 +7,7 @@ use rust_ml::neuron::activations::{LeakyReLu, ReLu, Sigmoid};
 use rust_ml::neuron::layers::CachedLayer;
 use rust_ml::neuron::losses::{mse_loss, MSE};
 use rust_ml::neuron::networks::{CachedNetwork, Regression};
-use rust_ml::neuron::optimizers::{OptimizeRegressorBatch, SGD, OptimizeRegressorOnce};
+use rust_ml::neuron::optimizers::{OptimizeRegressorBatch, OptimizeRegressorOnce, SGD};
 use rust_ml::neuron::transfers::FullyConnected;
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
@@ -107,14 +107,12 @@ fn main() {
             score += 1.;
             println!(
                 "correct - prediction: {} expected: {}",
-                prediction,
-                expected
+                prediction, expected
             );
         } else {
             println!(
                 "mistake - prediction: {} expected: {}",
-                prediction,
-                expected
+                prediction, expected
             );
         }
     }

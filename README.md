@@ -1,7 +1,6 @@
 # Rust-ML
 
-A simple machine learning library written in Rust, for supervised, unsupervised and 
-reinforcement learning.
+A simple machine learning library written in Rust, for supervised, unsupervised and reinforcement learning.
 
 ## Contents
 
@@ -13,17 +12,12 @@ reinforcement learning.
 
 CPU based neural network library implemented using [ndarray](https://github.com/rust-ndarray/ndarray).
 
-
-It won't outperform Tensorflow but it should still be very fast. Especially when compiled
-in `--release` mode!
+It won't outperform Tensorflow but it should still be very fast. Especially when compiled in `--release` mode!
 
 ## RL
 
-Reinforcement learning library containing Agents, Learners and Environments. 
+Reinforcement learning library containing Agents, Learners and Environments.
 
-
-A **Learner** teaches an **Agent** to master an **Environment**.
-All agents, learners and environments are designed to be easily swappable. For
-example a QAgent can interact with a Jump environment and learn using a QLearner,
-and that same agent can interact with a Bird environment and learn using a
-NeuroEvolutionLearner.
+A **Learner** teaches an **Agent** to master an **Environment**. All agents, learners and environments are designed to
+be easily swappable. For example a QAgent can interact with a Jump environment and learn using a QLearner, and that same
+agent can interact with a Bird environment and learn using a NeuroEvolutionLearner.

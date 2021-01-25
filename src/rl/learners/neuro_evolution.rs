@@ -125,7 +125,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::neuron::activations::{ReLu, Sigmoid, Softmax};
     use crate::neuron::layers::Layer;
     use crate::neuron::networks::StandardFeedForwardNetwork;
@@ -133,6 +132,8 @@ mod tests {
     use crate::rl::agents::NeuroEvolutionAgent;
     use crate::rl::environments::JumpEnvironment;
     use crate::rl::learners::neuro_evolution::NeuroEvolutionLearner;
+
+    use super::*;
 
     #[test]
     fn test_neuro_evolution_learner() {
