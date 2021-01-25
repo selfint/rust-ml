@@ -2,8 +2,8 @@ use ndarray::prelude::*;
 
 use crate::neuron::layers::Cached;
 use crate::neuron::losses::Loss;
-use crate::neuron::networks::CachedNetworkTrait;
-use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
+use crate::neuron::networks::CachedRegression;
+use crate::neuron::optimizers::{OptimizeRegressorBatch, OptimizeRegressorOnce};
 
 #[derive(Clone)]
 pub struct SGD {
@@ -90,7 +90,7 @@ impl SGD {
     ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>)
     where
         L: Cached,
-        N: CachedNetworkTrait<L>,
+        N: CachedRegression<L>,
     {
         let mut network_weights_gradients = vec![];
         let mut network_biases_gradients = vec![];
@@ -137,12 +137,12 @@ impl SGD {
     }
 }
 
-impl<N, L> OptimizeOnce<N, L> for SGD
+impl<N, L> OptimizeRegressorOnce<N, L> for SGD
 where
     L: Cached,
-    N: CachedNetworkTrait<L>,
+    N: CachedRegression<L>,
 {
-    fn optimize_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>) {
+    fn optimize_regressor_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>) {
         let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
@@ -155,12 +155,12 @@ where
     }
 }
 
-impl<N, L> OptimizeBatch<N, L> for SGD
+impl<N, L> OptimizeRegressorBatch<N, L> for SGD
 where
     L: Cached,
-    N: CachedNetworkTrait<L>,
+    N: CachedRegression<L>,
 {
-    fn optimize_batch(
+    fn optimize_regressor_batch(
         &self,
         network: &mut N,
         batch_inputs: &[Array1<f32>],
@@ -228,7 +228,7 @@ mod tests {
     use crate::neuron::activations::{LeakyReLu, ReLu, Sigmoid, Softplus};
     use crate::neuron::layers::CachedLayer;
     use crate::neuron::losses::{mse_loss, sse_loss, MSE, SSE};
-    use crate::neuron::networks::{CachedNetwork, FeedForwardNetworkTrait};
+    use crate::neuron::networks::{CachedNetwork, Regression};
     use crate::neuron::transfers::FullyConnected;
 
     #[test]
@@ -261,7 +261,7 @@ mod tests {
                 eprintln!("epoch: {} cost: {}", e, cost / 100.);
             }
 
-            optimizer.optimize_batch(&mut network, &batch_inputs, &batch_expected);
+            optimizer.optimize_regressor_batch(&mut network, &batch_inputs, &batch_expected);
         }
 
         let mut total_cost = 0.;
@@ -298,7 +298,7 @@ mod tests {
         let optimizer = SGD::new(0.1, MSE::new());
 
         for _ in 0..200 {
-            optimizer.optimize_once(&mut network, &input, &expected);
+            optimizer.optimize_regressor_once(&mut network, &input, &expected);
         }
 
         let prediction = network.predict(&input);

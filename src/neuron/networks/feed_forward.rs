@@ -1,5 +1,5 @@
 use crate::neuron::layers::NeuronLayer;
-use crate::neuron::networks::FeedForwardNetworkTrait;
+use crate::neuron::networks::Regression;
 use crate::neuron::networks::NetworkTrait;
 use ndarray::prelude::*;
 
@@ -58,7 +58,7 @@ impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
     }
 }
 
-impl<L: NeuronLayer> FeedForwardNetworkTrait<L> for StandardFeedForwardNetwork<L> {
+impl<L: NeuronLayer> Regression<L> for StandardFeedForwardNetwork<L> {
     fn predict(&self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
             .iter()

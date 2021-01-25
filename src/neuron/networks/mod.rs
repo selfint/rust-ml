@@ -4,4 +4,4 @@ mod network;
 
 pub use cached_network::CachedNetwork;
 pub use feed_forward::StandardFeedForwardNetwork;
-pub use network::{CachedNetworkTrait, FeedForwardNetworkTrait, NetworkTrait};
+pub use network::{CachedRegression, Regression, NetworkTrait, CachedClassification, Classification};

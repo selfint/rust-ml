@@ -13,10 +13,18 @@ pub trait NetworkTrait<L: NeuronLayer>: Clone {
     fn get_layers_mut(&mut self) -> &mut Vec<L>;
 }
 
-pub trait FeedForwardNetworkTrait<L: NeuronLayer>: NetworkTrait<L> {
+pub trait Regression<L: NeuronLayer>: NetworkTrait<L> {
     fn predict(&self, input: &Array1<f32>) -> Array1<f32>;
 }
 
-pub trait CachedNetworkTrait<L: NeuronLayer + Cached>: NetworkTrait<L> {
+pub trait CachedRegression<L: NeuronLayer + Cached>: NetworkTrait<L> {
     fn predict_cached(&mut self, input: &Array1<f32>) -> Array1<f32>;
+}
+
+pub trait Classification<L: NeuronLayer>: NetworkTrait<L> {
+    fn classify(&self, input: &Array1<f32>) -> Array1<f32>;
+}
+
+pub trait CachedClassification<L: NeuronLayer + Cached>: NetworkTrait<L> {
+    fn classify_cached(&mut self, input: &Array1<f32>) -> Array1<f32>;
 }

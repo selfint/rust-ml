@@ -1,5 +1,5 @@
 use crate::neuron::layers::Cached;
-use crate::neuron::networks::{CachedNetworkTrait, FeedForwardNetworkTrait, NetworkTrait};
+use crate::neuron::networks::{CachedRegression, Regression, NetworkTrait};
 use ndarray::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -57,7 +57,7 @@ impl<L: Cached> NetworkTrait<L> for CachedNetwork<L> {
     }
 }
 
-impl<L: Cached> FeedForwardNetworkTrait<L> for CachedNetwork<L> {
+impl<L: Cached> Regression<L> for CachedNetwork<L> {
     fn predict(&self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
             .iter()
@@ -67,7 +67,7 @@ impl<L: Cached> FeedForwardNetworkTrait<L> for CachedNetwork<L> {
     }
 }
 
-impl<L: Cached> CachedNetworkTrait<L> for CachedNetwork<L> {
+impl<L: Cached> CachedRegression<L> for CachedNetwork<L> {
     fn predict_cached(&mut self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
             .iter_mut()
