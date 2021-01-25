@@ -125,7 +125,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::neuron::activations::{ReLu, Sigmoid, Linear};
+    use crate::neuron::activations::{Linear, ReLu, Sigmoid};
     use crate::neuron::layers::Layer;
     use crate::neuron::networks::StandardFeedForwardNetwork;
     use crate::neuron::transfers::FullyConnected;

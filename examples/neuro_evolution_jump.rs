@@ -1,6 +1,6 @@
 use std::{thread, time};
 
-use rust_ml::neuron::activations::{ReLu, Sigmoid, Linear};
+use rust_ml::neuron::activations::{Linear, ReLu, Sigmoid};
 use rust_ml::neuron::layers::Layer;
 use rust_ml::neuron::networks::StandardFeedForwardNetwork;
 use rust_ml::neuron::transfers::FullyConnected;

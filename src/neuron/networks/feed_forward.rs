@@ -71,7 +71,7 @@ impl<L: NeuronLayer> Regression<L> for StandardFeedForwardNetwork<L> {
 
 #[cfg(test)]
 mod tests {
-    use crate::neuron::activations::{ReLu, Sigmoid, Linear};
+    use crate::neuron::activations::{Linear, ReLu, Sigmoid};
     use crate::neuron::layers::Layer;
     use crate::neuron::transfers::FullyConnected;
 

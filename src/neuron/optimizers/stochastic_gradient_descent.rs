@@ -142,14 +142,8 @@ where
     L: Cached,
     N: CachedRegression<L>,
 {
-    fn optimize_once(
-        &self,
-        network: &mut N,
-        input: &Array1<f32>,
-        expected: &Array1<f32>,
-    ) {
-        let (weight_gradients, bias_gradients) =
-            self.get_gradients(network, input, expected);
+    fn optimize_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>) {
+        let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
             **weights = weights.clone() - gradients * self.learning_rate;
@@ -193,8 +187,7 @@ where
             .skip(1)
             .zip(batch_expected.iter().skip(1))
         {
-            let (weight_gradients, bias_gradients) =
-                self.get_gradients(network, input, expected);
+            let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
             for i in 0..total_layers {
                 total_weights_gradients[i] = &total_weights_gradients[i] + &weight_gradients[i];
                 total_biases_gradients[i] = &total_biases_gradients[i] + &bias_gradients[i];
