@@ -3,11 +3,11 @@ use std::error::Error;
 use ndarray::prelude::*;
 use ndarray_stats::QuantileExt;
 
-use rust_ml::neuron::activations::{LeakyReLu, Linear, ReLu, Sigmoid};
+use rust_ml::neuron::activations::Softplus;
 use rust_ml::neuron::layers::CachedLayer;
 use rust_ml::neuron::losses::{cce_loss, CCE};
 use rust_ml::neuron::networks::{CachedNetwork, Regression};
-use rust_ml::neuron::optimizers::{OptimizeBatch, OptimizeOnce, SGD};
+use rust_ml::neuron::optimizers::{OptimizeBatch, SGD};
 use rust_ml::neuron::transfers::FullyConnected;
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
@@ -67,26 +67,28 @@ fn read_training_data() -> Result<
 }
 
 fn main() {
+    // parameters
+    let train_samples = 60_000;
+    let test_samples = 10_000;
+    let epochs = 100_000_000;
+    let batch_size = 100;
+    let learning_rate = 0.3;
+
     let (train_x, train_y, test_x, test_y) = read_training_data().expect("failed to load datasets");
-    let samples = 1_000;
-    let sample_train_x = &train_x[0..samples];
-    let sample_train_y = &train_y[0..samples];
-    let sample_test_x = &test_x[0..samples];
-    let sample_test_y = &test_y[0..samples];
+    let sample_train_x = &train_x[0..train_samples];
+    let sample_train_y = &train_y[0..train_samples];
+    let sample_test_x = &test_x[0..test_samples];
+    let sample_test_y = &test_y[0..test_samples];
 
     let mut network = CachedNetwork::new(vec![
-        CachedLayer::new(10, 784, FullyConnected::new(), Sigmoid::new()),
-        CachedLayer::new(10, 10, FullyConnected::new(), Sigmoid::new()),
-        CachedLayer::new(10, 10, FullyConnected::new(), Linear::new()),
+        CachedLayer::new(10, 784, FullyConnected::new(), Softplus::new()),
+        CachedLayer::new(10, 10, FullyConnected::new(), Softplus::new()),
     ]);
 
-    let epochs = 100_000;
-    let batch_size = 10;
-    let mut learning_rate = 10.;
-    learning_rate /= batch_size as f32;
+    let optimizer = SGD::new(learning_rate, CCE::new());
+
     let batches = sample_train_x.len() / batch_size;
 
-    let optimizer = SGD::new(learning_rate, CCE::new());
     for e in 0..epochs {
         // split data into batches
         for b in 0..batches {
@@ -96,7 +98,7 @@ fn main() {
             optimizer.optimize_batch(&mut network, batch_inputs, batch_expected);
         }
 
-        if e % 100 == 0 {
+        if e % 10 == 0 {
             let mut train_loss = 0.;
             let mut train_mistakes = 0.;
             for (input, expected) in sample_train_x.iter().zip(sample_train_y.iter()) {
@@ -122,34 +124,29 @@ fn main() {
             println!(
                 "epoch {} | train loss: {} accuracy: {}% | test loss: {} accuracy: {}%",
                 e,
-                train_loss / (samples as f32),
-                (1. - (train_mistakes / (samples as f32))) * 100.,
-                test_loss / (samples as f32),
-                (1. - (test_mistakes / (samples as f32))) * 100.,
+                train_loss / (train_samples as f32),
+                (1. - (train_mistakes / (train_samples as f32))) * 100.,
+                test_loss / (test_samples as f32),
+                (1. - (test_mistakes / (test_samples as f32))) * 100.,
             );
         }
     }
 
-    let mut score = 0.;
-    for (x, y) in sample_test_x.iter().zip(sample_test_y.iter()) {
-        let prediction = network.predict(x).argmax().unwrap();
-        let expected = y.argmax().unwrap();
-        if prediction == expected {
-            score += 1.;
-            println!(
-                "correct - prediction: {} expected: {}",
-                prediction, expected
-            );
-        } else {
-            println!(
-                "mistake - prediction: {} expected: {}",
-                prediction, expected
-            );
+    let mut test_loss = 0.;
+    let mut test_mistakes = 0.;
+    for (input, expected) in sample_test_x.iter().zip(sample_test_y.iter()) {
+        let prediction = network.predict(input);
+        if prediction.argmax().unwrap() != expected.argmax().unwrap() {
+            test_mistakes += 1.;
         }
+
+        test_loss += cce_loss(&prediction, expected).sum();
     }
 
     println!(
-        "finished training, accuracy: {}%",
-        score * 100. / sample_test_x.len() as f32
+        "final test loss: {} accuracy: {}%",
+        test_loss / (test_samples as f32),
+        (1. - (test_mistakes / (test_samples as f32))) * 100.,
     );
+    println!("trained network: {:?}", network);
 }
