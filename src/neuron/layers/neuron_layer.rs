@@ -43,10 +43,11 @@ pub trait Cached: NeuronLayer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::neuron::activations::Linear;
     use crate::neuron::layers::Layer;
     use crate::neuron::transfers::FullyConnected;
+
+    use super::*;
 
     #[test]
     fn test_layer() {

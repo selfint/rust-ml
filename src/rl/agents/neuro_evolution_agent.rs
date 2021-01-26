@@ -5,7 +5,7 @@ use ndarray_rand::rand::{thread_rng, Rng};
 use ndarray_stats::QuantileExt;
 
 use crate::neuron::layers::NeuronLayer;
-use crate::neuron::networks::FeedForwardNetworkTrait;
+use crate::neuron::networks::Regression;
 use crate::rl::learners::neuro_evolution_internals::Evolve;
 use crate::rl::prelude::*;
 
@@ -13,7 +13,7 @@ use crate::rl::prelude::*;
 pub struct NeuroEvolutionAgent<N, L>
 where
     L: NeuronLayer,
-    N: FeedForwardNetworkTrait<L>,
+    N: Regression<L>,
 {
     network: N,
     phantom: PhantomData<L>,
@@ -22,7 +22,7 @@ where
 impl<N, L> NeuroEvolutionAgent<N, L>
 where
     L: NeuronLayer,
-    N: FeedForwardNetworkTrait<L>,
+    N: Regression<L>,
 {
     pub fn new(network: N) -> Self {
         Self {
@@ -35,7 +35,7 @@ where
 impl<N, L> Agent<DiscreteAction> for NeuroEvolutionAgent<N, L>
 where
     L: NeuronLayer,
-    N: FeedForwardNetworkTrait<L>,
+    N: Regression<L>,
 {
     fn act(&mut self, state: &State) -> DiscreteAction {
         DiscreteAction(self.network.predict(state).argmax().unwrap())
@@ -45,7 +45,7 @@ where
 impl<N, L> Agent<ContinuousAction> for NeuroEvolutionAgent<N, L>
 where
     L: NeuronLayer,
-    N: FeedForwardNetworkTrait<L>,
+    N: Regression<L>,
 {
     fn act(&mut self, state: &State) -> ContinuousAction {
         ContinuousAction(self.network.predict(state))
@@ -55,7 +55,7 @@ where
 impl<N, L> Evolve for NeuroEvolutionAgent<N, L>
 where
     L: NeuronLayer,
-    N: FeedForwardNetworkTrait<L>,
+    N: Regression<L>,
 {
     /// mutate weights and biases of agent's network
     fn mutate(&mut self, mutation_rate: f64) {

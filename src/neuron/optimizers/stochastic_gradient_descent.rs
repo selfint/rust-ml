@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 
 use crate::neuron::layers::Cached;
 use crate::neuron::losses::Loss;
-use crate::neuron::networks::CachedNetworkTrait;
+use crate::neuron::networks::CachedRegression;
 use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
 
 #[derive(Clone)]
@@ -32,17 +32,17 @@ impl SGD {
 
         // derivatives of the transfer with respect to the weights
         for j in 0..layer_outputs {
+            // derivatives of the activation of the weight's dst node
+            // with respect to the transfer of the weight's src node
+            let da_dt_j = da_dt[j];
+
+            // derivatives of the loss with respect to the activation of
+            // this weight's dst node
+            let dl_da_j = dl_da[j];
+
             for k in 0..layer_inputs {
-                // derivatve of transfer with respect to this weight
+                // derivative of transfer with respect to this weight
                 let dt_dw_jk = dt_dw[k];
-
-                // derivatives of the activation of the weight's dst node
-                // with respect to the transfer of the weight's src node
-                let da_dt_j = da_dt[j];
-
-                // derivatives of the loss with respect to the activation of
-                // this weight's dst node
-                let dl_da_j = dl_da[j];
 
                 // chain rule - derivatives of the loss with respect to this weight
                 layer_weights_gradients[[j, k]] = dl_da_j * da_dt_j * dt_dw_jk;
@@ -90,7 +90,7 @@ impl SGD {
     ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>)
     where
         L: Cached,
-        N: CachedNetworkTrait<L>,
+        N: CachedRegression<L>,
     {
         let mut network_weights_gradients = vec![];
         let mut network_biases_gradients = vec![];
@@ -140,7 +140,7 @@ impl SGD {
 impl<N, L> OptimizeOnce<N, L> for SGD
 where
     L: Cached,
-    N: CachedNetworkTrait<L>,
+    N: CachedRegression<L>,
 {
     fn optimize_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>) {
         let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
@@ -158,7 +158,7 @@ where
 impl<N, L> OptimizeBatch<N, L> for SGD
 where
     L: Cached,
-    N: CachedNetworkTrait<L>,
+    N: CachedRegression<L>,
 {
     fn optimize_batch(
         &self,
@@ -224,54 +224,57 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::neuron::activations::{LeakyReLu, ReLu, Sigmoid, Softplus};
     use crate::neuron::layers::CachedLayer;
-    use crate::neuron::losses::{mse_loss, MSE};
-    use crate::neuron::networks::{CachedNetwork, FeedForwardNetworkTrait};
+    use crate::neuron::losses::{mse_loss, sse_loss, MSE, SSE};
+    use crate::neuron::networks::{CachedNetwork, Regression};
     use crate::neuron::transfers::FullyConnected;
 
+    use super::*;
+
     #[test]
-    fn test_sgd_optimize_batch_convergence() {
+    fn test_sgd_optimize_batch_sin_convergence() {
         let mut network = CachedNetwork::new(vec![
-            CachedLayer::new(3, 2, FullyConnected::new(), LeakyReLu::new()),
+            CachedLayer::new(3, 1, FullyConnected::new(), Sigmoid::new()),
             CachedLayer::new(1, 3, FullyConnected::new(), Sigmoid::new()),
         ]);
 
-        let batch_inputs = vec![
-            array![1., 1.],
-            array![1., 0.],
-            array![0., 1.],
-        ];
+        let batch_inputs: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
+            .iter()
+            .map(|&x| array![x])
+            .collect();
 
-        let batch_expected = vec![
-            array![1.],
-            array![1.],
-            array![0.]
-        ];
+        let batch_expected: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
+            .iter()
+            .map(|&x| array![(x as f32).sin()])
+            .collect();
 
-        let optimizer = SGD::new(1., MSE::new());
+        let optimizer = SGD::new(5., SSE::new());
 
-        for _ in 0..10000 {
+        for e in 0..1_000 {
             let mut cost = 0.;
             for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
                 let prediction = network.predict(&input);
-                cost += mse_loss(&prediction, &expected).sum();
+                cost += sse_loss(&prediction, &expected).sum();
             }
-            eprintln!("cost: {}", cost / 4.);
+
+            if e & 100 == 0 {
+                eprintln!("epoch: {} cost: {}", e, cost / 100.);
+            }
+
             optimizer.optimize_batch(&mut network, &batch_inputs, &batch_expected);
         }
 
         let mut total_cost = 0.;
         for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
             let prediction = network.predict(&input);
-            let cost = mse_loss(&prediction, &expected).sum();
+            let cost = sse_loss(&prediction, &expected).sum();
             eprintln!(
                 "prediction: {} expected: {}",
                 prediction.to_string(),
                 expected.to_string()
             );
-            total_cost += cost;
+            total_cost += cost / 100.;
         }
 
         assert!(

@@ -1,7 +1,8 @@
-use crate::neuron::layers::NeuronLayer;
-use crate::neuron::networks::FeedForwardNetworkTrait;
-use crate::neuron::networks::NetworkTrait;
 use ndarray::prelude::*;
+
+use crate::neuron::layers::NeuronLayer;
+use crate::neuron::networks::Network;
+use crate::neuron::networks::Regression;
 
 #[derive(Debug, Clone)]
 pub struct StandardFeedForwardNetwork<L: NeuronLayer> {
@@ -16,7 +17,7 @@ impl<L: NeuronLayer> StandardFeedForwardNetwork<L> {
     }
 }
 
-impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
+impl<L: NeuronLayer> Network<L> for StandardFeedForwardNetwork<L> {
     fn len(&self) -> usize {
         self.layers.len()
     }
@@ -58,7 +59,7 @@ impl<L: NeuronLayer> NetworkTrait<L> for StandardFeedForwardNetwork<L> {
     }
 }
 
-impl<L: NeuronLayer> FeedForwardNetworkTrait<L> for StandardFeedForwardNetwork<L> {
+impl<L: NeuronLayer> Regression<L> for StandardFeedForwardNetwork<L> {
     fn predict(&self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
             .iter()
@@ -70,16 +71,17 @@ impl<L: NeuronLayer> FeedForwardNetworkTrait<L> for StandardFeedForwardNetwork<L
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::neuron::activations::{ReLu, Sigmoid, Softmax};
+    use crate::neuron::activations::{Linear, ReLu, Sigmoid};
     use crate::neuron::layers::Layer;
     use crate::neuron::transfers::FullyConnected;
+
+    use super::*;
 
     #[test]
     fn test_network_predict() {
         let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
         let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
-        let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
+        let l3 = Layer::new(1, 4, FullyConnected::new(), Linear::new());
 
         let network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
 
@@ -92,7 +94,7 @@ mod tests {
     fn test_network_is_cloneable() {
         let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
         let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
-        let l3 = Layer::new(1, 4, FullyConnected::new(), Softmax::new());
+        let l3 = Layer::new(1, 4, FullyConnected::new(), Linear::new());
 
         let layers = vec![l1, l2, l3];
         let network1 = StandardFeedForwardNetwork::new(layers);
