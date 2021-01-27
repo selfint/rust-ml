@@ -28,7 +28,7 @@ fn main() {
     let mut agent = NeuroEvolutionAgent::new(network);
 
     // train learner
-    let epochs = 200;
+    let epochs = 1000;
     let agent_amount = 20;
     let mutation_rate = 0.01;
     let mut learner = GeneticAlgorithmLearner::new(agent_amount, mutation_rate);
