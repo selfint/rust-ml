@@ -7,7 +7,7 @@ use rust_ml::neuron::transfers::Dense;
 use rust_ml::rl::agents::NeuroEvolutionAgent;
 use rust_ml::rl::environments::JumpEnvironment;
 use rust_ml::rl::prelude::*;
-use rust_ml::rl::trainers::GeneticAlgorithm;
+use rust_ml::rl::trainers::genetic_algorithm::GeneticAlgorithm;
 
 fn main() {
     let env_size = 7;
