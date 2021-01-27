@@ -12,7 +12,7 @@ fn softmax_activation(transfer: &Array1<f32>) -> Array1<f32> {
     softmax
 }
 
-fn softmax_derivative(transfer: &Array1<f32>) -> Array2<f32> {
+fn _softmax_derivative(transfer: &Array1<f32>) -> Array2<f32> {
     let softmax = softmax_activation(transfer);
 
     let mut derivative = Array2::zeros((softmax.len(), softmax.len()));
