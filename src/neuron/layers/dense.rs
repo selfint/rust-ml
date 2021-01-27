@@ -4,10 +4,10 @@ use ndarray_rand::RandomExt;
 
 use crate::neuron::activations::Activation;
 use crate::neuron::layers::{Cached, NeuronLayer};
-use crate::neuron::transfers::fully_connected_transfer;
+use crate::neuron::transfers::dense_transfer;
 
 #[derive(Clone, Debug)]
-pub struct FullyConnectedLayer {
+pub struct Dense {
     input: Option<Array1<f32>>,
     transfer: Option<Array1<f32>>,
     activation: Option<Array1<f32>>,
@@ -18,7 +18,7 @@ pub struct FullyConnectedLayer {
     biases: Array1<f32>,
 }
 
-impl FullyConnectedLayer {
+impl Dense {
     pub fn new(output_size: usize, input_size: usize, activation_fn: Activation) -> Self {
         let distribution = Uniform::new(-0.01, 0.01);
         Self {
@@ -34,7 +34,7 @@ impl FullyConnectedLayer {
     }
 }
 
-impl NeuronLayer for FullyConnectedLayer {
+impl NeuronLayer for Dense {
     fn input_size(&self) -> usize {
         self.input_size
     }
@@ -60,7 +60,7 @@ impl NeuronLayer for FullyConnectedLayer {
     }
 
     fn apply_transfer(&self, input: &Array1<f32>) -> Array1<f32> {
-        fully_connected_transfer(&self.weights, &self.biases, input)
+        dense_transfer(&self.weights, &self.biases, input)
     }
 
     fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32> {
@@ -72,7 +72,7 @@ impl NeuronLayer for FullyConnectedLayer {
     }
 }
 
-impl Cached for FullyConnectedLayer {
+impl Cached for Dense {
     fn get_input(&self) -> Option<&Array1<f32>> {
         self.input.as_ref()
     }

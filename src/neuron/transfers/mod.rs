@@ -1,5 +1,5 @@
-pub use fully_connected::{fully_connected_transfer, FullyConnected};
+pub use dense::{dense_transfer, Dense};
 pub use transfer::{Transfer, TransferTrait};
 
-mod fully_connected;
+mod dense;
 mod transfer;

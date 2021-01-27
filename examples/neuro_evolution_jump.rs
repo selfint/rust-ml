@@ -3,7 +3,7 @@ use std::{thread, time};
 use rust_ml::neuron::activations::{Linear, ReLu, Sigmoid};
 use rust_ml::neuron::layers::Layer;
 use rust_ml::neuron::networks::StandardFeedForwardNetwork;
-use rust_ml::neuron::transfers::FullyConnected;
+use rust_ml::neuron::transfers::Dense;
 use rust_ml::rl::agents::NeuroEvolutionAgent;
 use rust_ml::rl::environments::JumpEnvironment;
 use rust_ml::rl::learners::NeuroEvolutionLearner;
@@ -17,10 +17,10 @@ fn main() {
     let env_action_space = env.action_space();
     let env_observation_space = env.observation_space();
     let layers = vec![
-        Layer::new(3, env_observation_space, FullyConnected::new(), ReLu::new()),
+        Layer::new(3, env_observation_space, Dense::new(), ReLu::new()),
         // bring a bazooka to a knife fight
-        Layer::new(4, 3, FullyConnected::new(), Sigmoid::new()),
-        Layer::new(env_action_space, 4, FullyConnected::new(), Linear::new()),
+        Layer::new(4, 3, Dense::new(), Sigmoid::new()),
+        Layer::new(env_action_space, 4, Dense::new(), Linear::new()),
     ];
     let network = StandardFeedForwardNetwork::new(layers);
 

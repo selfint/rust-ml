@@ -8,7 +8,7 @@ use rust_ml::neuron::layers::CachedLayer;
 use rust_ml::neuron::losses::{cce_loss, CCE};
 use rust_ml::neuron::networks::{CachedNetwork, Regression};
 use rust_ml::neuron::optimizers::{OptimizeBatch, SGD};
-use rust_ml::neuron::transfers::FullyConnected;
+use rust_ml::neuron::transfers::Dense;
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
 const MNIST_TEST_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_test.csv";
@@ -81,8 +81,8 @@ fn main() {
     let sample_test_y = &test_y[0..test_samples];
 
     let mut network = CachedNetwork::new(vec![
-        CachedLayer::new(10, 784, FullyConnected::new(), Softplus::new()),
-        CachedLayer::new(10, 10, FullyConnected::new(), Softplus::new()),
+        CachedLayer::new(10, 784, Dense::new(), Softplus::new()),
+        CachedLayer::new(10, 10, Dense::new(), Softplus::new()),
     ]);
 
     let optimizer = SGD::new(learning_rate, CCE::new());

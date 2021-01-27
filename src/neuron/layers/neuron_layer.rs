@@ -45,20 +45,20 @@ pub trait Cached: NeuronLayer {
 mod tests {
     use crate::neuron::activations::Linear;
     use crate::neuron::layers::Layer;
-    use crate::neuron::transfers::FullyConnected;
+    use crate::neuron::transfers::Dense;
 
     use super::*;
 
     #[test]
     fn test_layer() {
-        let layer = Layer::new(3, 2, FullyConnected::new(), Linear::new());
+        let layer = Layer::new(3, 2, Dense::new(), Linear::new());
         let output = layer.forward(&arr1(&[1., 0.]));
         assert_eq!(output.len(), 3);
     }
 
     #[test]
     fn test_sizes() {
-        let layer = Layer::new(3, 2, FullyConnected::new(), Linear::new());
+        let layer = Layer::new(3, 2, Dense::new(), Linear::new());
         assert_eq!(layer.input_size(), 2);
         assert_eq!(layer.output_size(), 3);
     }

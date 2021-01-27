@@ -73,15 +73,15 @@ impl<L: NeuronLayer> Regression<L> for StandardFeedForwardNetwork<L> {
 mod tests {
     use crate::neuron::activations::{Linear, ReLu, Sigmoid};
     use crate::neuron::layers::Layer;
-    use crate::neuron::transfers::FullyConnected;
+    use crate::neuron::transfers::Dense;
 
     use super::*;
 
     #[test]
     fn test_network_predict() {
-        let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
-        let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
-        let l3 = Layer::new(1, 4, FullyConnected::new(), Linear::new());
+        let l1 = Layer::new(3, 2, Dense::new(), ReLu::new());
+        let l2 = Layer::new(4, 3, Dense::new(), Sigmoid::new());
+        let l3 = Layer::new(1, 4, Dense::new(), Linear::new());
 
         let network = StandardFeedForwardNetwork::new(vec![l1, l2, l3]);
 
@@ -92,9 +92,9 @@ mod tests {
 
     #[test]
     fn test_network_is_cloneable() {
-        let l1 = Layer::new(3, 2, FullyConnected::new(), ReLu::new());
-        let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
-        let l3 = Layer::new(1, 4, FullyConnected::new(), Linear::new());
+        let l1 = Layer::new(3, 2, Dense::new(), ReLu::new());
+        let l2 = Layer::new(4, 3, Dense::new(), Sigmoid::new());
+        let l3 = Layer::new(1, 4, Dense::new(), Linear::new());
 
         let layers = vec![l1, l2, l3];
         let network1 = StandardFeedForwardNetwork::new(layers);
