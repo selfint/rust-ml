@@ -3,14 +3,15 @@ use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
 use crate::neuron::activations::Activation;
-use crate::neuron::layers::{Cached, Layer};
-use crate::neuron::transfers::dense_transfer;
+use crate::neuron::layers::Layer;
+use crate::neuron::transfers::Transfer;
 
 #[derive(Clone, Debug)]
-pub struct Dense {
+pub struct StandardLayer {
     input: Option<Array1<f32>>,
     transfer: Option<Array1<f32>>,
     activation: Option<Array1<f32>>,
+    transfer_fn: Transfer,
     activation_fn: Activation,
     input_size: usize,
     output_size: usize,
@@ -18,13 +19,19 @@ pub struct Dense {
     biases: Array1<f32>,
 }
 
-impl Dense {
-    pub fn new(output_size: usize, input_size: usize, activation_fn: Activation) -> Self {
+impl StandardLayer {
+    pub fn new(
+        output_size: usize,
+        input_size: usize,
+        transfer_fn: Transfer,
+        activation_fn: Activation,
+    ) -> Self {
         let distribution = Uniform::new(-0.01, 0.01);
         Self {
             input: None,
             transfer: None,
             activation: None,
+            transfer_fn,
             activation_fn,
             input_size,
             output_size,
@@ -34,7 +41,7 @@ impl Dense {
     }
 }
 
-impl Layer for Dense {
+impl Layer for StandardLayer {
     fn input_size(&self) -> usize {
         self.input_size
     }
@@ -60,44 +67,11 @@ impl Layer for Dense {
     }
 
     fn apply_transfer(&self, input: &Array1<f32>) -> Array1<f32> {
-        dense_transfer(&self.weights, &self.biases, input)
+        self.transfer_fn
+            .transfer(&self.weights, &self.biases, input)
     }
 
     fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32> {
         self.activation_fn.activate(transfer)
-    }
-
-    fn forward(&self, input: &Array1<f32>) -> Array1<f32> {
-        self.apply_activation(&self.apply_transfer(input))
-    }
-}
-
-impl Cached for Dense {
-    fn get_input(&self) -> Option<&Array1<f32>> {
-        self.input.as_ref()
-    }
-
-    fn get_transfer(&self) -> Option<&Array1<f32>> {
-        self.transfer.as_ref()
-    }
-
-    fn get_activation(&self) -> Option<&Array1<f32>> {
-        self.activation.as_ref()
-    }
-
-    fn cache_input(&mut self, input: Array1<f32>) {
-        self.input = Some(input);
-    }
-
-    fn cache_transfer(&mut self, transfer: Array1<f32>) {
-        self.transfer = Some(transfer);
-    }
-
-    fn cache_activation(&mut self, activation: Array1<f32>) {
-        self.activation = Some(activation);
-    }
-
-    fn apply_activation_derivative(&self, transfer: &Array1<f32>) -> Array1<f32> {
-        self.activation_fn.derive(transfer)
     }
 }

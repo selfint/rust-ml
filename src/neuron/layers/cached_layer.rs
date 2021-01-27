@@ -3,7 +3,7 @@ use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
 use crate::neuron::activations::Activation;
-use crate::neuron::layers::{Cached, NeuronLayer};
+use crate::neuron::layers::{Cached, Layer};
 use crate::neuron::transfers::Transfer;
 
 #[derive(Clone, Debug)]
@@ -41,7 +41,7 @@ impl CachedLayer {
     }
 }
 
-impl NeuronLayer for CachedLayer {
+impl Layer for CachedLayer {
     fn input_size(&self) -> usize {
         self.input_size
     }
