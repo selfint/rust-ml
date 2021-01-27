@@ -5,18 +5,18 @@ use ndarray_stats::QuantileExt;
 
 use crate::rl::prelude::*;
 
-// Allows for learning using a genetic algorithm
+/// Allows Agents to be trained using a genetic algorithm
 pub trait Evolve {
     fn mutate(&mut self, mutation_rate: f64);
     fn crossover(&self, other: &Self) -> Self;
 }
 
-pub struct GeneticAlgorithmLearner {
+pub struct GeneticAlgorithm {
     agent_amount: usize,
     mutation_rate: f64,
 }
 
-impl GeneticAlgorithmLearner {
+impl GeneticAlgorithm {
     pub fn new(agent_amount: usize, mutation_rate: f64) -> Self {
         Self {
             agent_amount,
@@ -65,7 +65,7 @@ impl GeneticAlgorithmLearner {
     }
 }
 
-impl<AC, AG> Trainer<AC, AG> for GeneticAlgorithmLearner
+impl<AC, AG> Trainer<AC, AG> for GeneticAlgorithm
 where
     AC: Action,
     AG: Agent<AC> + Evolve,
@@ -131,7 +131,7 @@ mod tests {
     use crate::neuron::transfers::Dense;
     use crate::rl::agents::NeuroEvolutionAgent;
     use crate::rl::environments::JumpEnvironment;
-    use crate::rl::trainers::genetic_algorithm::GeneticAlgorithmLearner;
+    use crate::rl::trainers::genetic_algorithm::GeneticAlgorithm;
 
     use super::*;
 
@@ -147,7 +147,7 @@ mod tests {
         let mut agent = NeuroEvolutionAgent::new(StandardFeedForwardNetwork::new(network_layers));
         let agent_amount = 10;
         let mutation_rate = 0.01;
-        let mut learner = GeneticAlgorithmLearner::new(agent_amount, mutation_rate);
+        let mut learner = GeneticAlgorithm::new(agent_amount, mutation_rate);
         let epochs = 10;
         learner.train(&mut agent, &env, epochs, false);
     }

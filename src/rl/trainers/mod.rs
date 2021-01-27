@@ -1,4 +1,4 @@
-pub use genetic_algorithm::GeneticAlgorithmLearner;
+pub use genetic_algorithm::GeneticAlgorithm;
 pub use trainer::Trainer;
 
 mod genetic_algorithm;
