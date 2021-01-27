@@ -4,7 +4,7 @@ use ndarray::Array1;
 
 pub use crate::rl::agents::Agent;
 pub use crate::rl::environments::Environment;
-pub use crate::rl::learners::Learner;
+pub use crate::rl::trainers::Trainer;
 
 /// Actions that agents can take in an environment
 pub trait Action: Debug + Clone {}

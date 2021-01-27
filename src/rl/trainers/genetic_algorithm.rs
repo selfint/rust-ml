@@ -11,12 +11,12 @@ pub trait Evolve {
     fn crossover(&self, other: &Self) -> Self;
 }
 
-pub struct NeuroEvolutionLearner {
+pub struct GeneticAlgorithmLearner {
     agent_amount: usize,
     mutation_rate: f64,
 }
 
-impl NeuroEvolutionLearner {
+impl GeneticAlgorithmLearner {
     pub fn new(agent_amount: usize, mutation_rate: f64) -> Self {
         Self {
             agent_amount,
@@ -65,7 +65,7 @@ impl NeuroEvolutionLearner {
     }
 }
 
-impl<AC, AG> Learner<AC, AG> for NeuroEvolutionLearner
+impl<AC, AG> Trainer<AC, AG> for GeneticAlgorithmLearner
 where
     AC: Action,
     AG: Agent<AC> + Evolve,
@@ -131,7 +131,7 @@ mod tests {
     use crate::neuron::transfers::Dense;
     use crate::rl::agents::NeuroEvolutionAgent;
     use crate::rl::environments::JumpEnvironment;
-    use crate::rl::learners::neuro_evolution::NeuroEvolutionLearner;
+    use crate::rl::trainers::genetic_algorithm::GeneticAlgorithmLearner;
 
     use super::*;
 
@@ -147,7 +147,7 @@ mod tests {
         let mut agent = NeuroEvolutionAgent::new(StandardFeedForwardNetwork::new(network_layers));
         let agent_amount = 10;
         let mutation_rate = 0.01;
-        let mut learner = NeuroEvolutionLearner::new(agent_amount, mutation_rate);
+        let mut learner = GeneticAlgorithmLearner::new(agent_amount, mutation_rate);
         let epochs = 10;
         learner.train(&mut agent, &env, epochs, false);
     }

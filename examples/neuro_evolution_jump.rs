@@ -6,8 +6,8 @@ use rust_ml::neuron::networks::StandardFeedForwardNetwork;
 use rust_ml::neuron::transfers::Dense;
 use rust_ml::rl::agents::NeuroEvolutionAgent;
 use rust_ml::rl::environments::JumpEnvironment;
-use rust_ml::rl::learners::NeuroEvolutionLearner;
 use rust_ml::rl::prelude::*;
+use rust_ml::rl::trainers::GeneticAlgorithmLearner;
 
 fn main() {
     let env_size = 7;
@@ -31,7 +31,7 @@ fn main() {
     let epochs = 200;
     let agent_amount = 20;
     let mutation_rate = 0.01;
-    let mut learner = NeuroEvolutionLearner::new(agent_amount, mutation_rate);
+    let mut learner = GeneticAlgorithmLearner::new(agent_amount, mutation_rate);
     learner.train(&mut agent, &env, epochs, true);
 
     // show trained agent

@@ -6,8 +6,8 @@ use ndarray_stats::QuantileExt;
 
 use crate::neuron::layers::Layer;
 use crate::neuron::networks::Regression;
-use crate::rl::learners::neuro_evolution_internals::Evolve;
 use crate::rl::prelude::*;
+use crate::rl::trainers::neuro_evolution_internals::Evolve;
 
 #[derive(Clone)]
 pub struct NeuroEvolutionAgent<N, L>
