@@ -11,6 +11,8 @@ pub trait Evolve {
     fn crossover(&self, other: &Self) -> Self;
 }
 
+/// Trains Agent by making it compete against different versions of itself,
+/// and setting the Agent as the best Agent in each generation.
 pub struct GeneticAlgorithm {
     agent_amount: usize,
     mutation_rate: f64,

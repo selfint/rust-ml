@@ -9,6 +9,8 @@ use crate::neuron::networks::Regression;
 use crate::rl::prelude::*;
 use crate::rl::trainers::genetic_algorithm::Evolve;
 
+/// An `Agent` with a `Network` that can `Evolve` and perform `DiscreteAction`s or
+/// `ContinuousAction`
 #[derive(Clone)]
 pub struct NeuroEvolutionAgent<N, L>
 where
