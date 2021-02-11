@@ -1,6 +1,6 @@
 use crate::rl::prelude::*;
 
-/// Train an Agent in any Environment
+/// Train an Agent in an Environment
 pub trait Trainer<AC: Action, AG: Agent<AC>> {
     fn train<'a, E: Environment<AC>>(
         &mut self,
@@ -8,5 +8,5 @@ pub trait Trainer<AC: Action, AG: Agent<AC>> {
         env: &E,
         epochs: usize,
         verbose: bool,
-    ) -> &'a mut AG;
+    );
 }

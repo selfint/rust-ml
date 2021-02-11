@@ -44,7 +44,7 @@ where
         env: &E,
         epochs: usize,
         verbose: bool,
-    ) -> &'a mut A {
+    ) {
         let mut rng = thread_rng();
         let mut training_env = env.clone();
         let env_action_space = training_env.action_space();
@@ -80,8 +80,6 @@ where
                 println!("epoch {}: score={}", e, score);
             }
         }
-
-        agent
     }
 }
 

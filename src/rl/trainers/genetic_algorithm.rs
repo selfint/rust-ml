@@ -78,10 +78,9 @@ where
         env: &E,
         epochs: usize,
         verbose: bool,
-    ) -> &'a mut AG {
+    ) {
         // create multiple agents and an env for each one
         let mut agents = vec![agent.clone(); self.agent_amount];
-        let best_agent = agent;
         let mut envs = vec![env.clone(); self.agent_amount];
 
         // run epochs
@@ -113,15 +112,15 @@ where
                 );
             }
 
-            // HILLCLIMBING: save the best agent from each generation
-            *best_agent = agents[scores.argmax().unwrap()].clone();
+            // update agent as the best agent of the current generation
+            *agent = agents[scores.argmax().unwrap()].clone();
 
             // spawn new generation
             agents = self.new_generation(agents.iter().collect(), &scores);
-            agents[0] = best_agent.clone();
-        }
 
-        best_agent
+            // HILLCLIMBING: save the best agent from each generation
+            agents[0] = agent.clone();
+        }
     }
 }
 
