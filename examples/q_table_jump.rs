@@ -1,9 +1,9 @@
-use std::{thread, time};
 use rust_ml::rl::prelude::*;
+use std::{thread, time};
 
 use rust_ml::rl::agents::QTableAgent;
-use rust_ml::rl::trainers::q_learning::QLearner;
 use rust_ml::rl::environments::JumpEnvironment;
+use rust_ml::rl::trainers::q_learning::QLearner;
 
 fn main() {
     // build training environment
