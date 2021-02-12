@@ -219,6 +219,9 @@ mod tests {
         let mut env = JumpEnvironment::new(5);
         for _ in 0..1000 {
             env.step(&DiscreteAction(0));
+            if env.is_done() {
+                break;
+            }
         }
 
         assert!(env.is_done());
@@ -229,6 +232,9 @@ mod tests {
         let mut env = JumpEnvironment::new(10);
         for _ in 0..1000 {
             env.step(&DiscreteAction(1));
+            if env.is_done() {
+                break;
+            }
         }
 
         assert!(env.is_done());
