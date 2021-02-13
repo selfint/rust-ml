@@ -27,19 +27,16 @@ impl FlappyEnvironment {
     }
 
     /// update player position and return true if player is out-of-bounds
-    fn update_player(&mut self, action: &DiscreteAction) -> bool {
-        if self.player_vel <= 3 && action.0 == 1 {
-            self.player_vel += 2;
-        } else {
+    fn update_player(&mut self, action: &DiscreteAction) {
+        if self.player_vel <= 2 && action.0 == 1 {
+            self.player_vel += 2
+        } if self.player_vel >= -2 {
             self.player_vel -= 1;
         }
 
         let new_player_y = self.player.1 as isize + self.player_vel;
-        if 0 > new_player_y || new_player_y >= self.size as isize {
-            true
-        } else {
+        if 0 <= new_player_y && new_player_y <= self.size as isize {
             self.player.1 = new_player_y.try_into().unwrap();
-            false
         }
     }
 
@@ -53,7 +50,7 @@ impl FlappyEnvironment {
 
         match self.walls.last() {
             Some(last_wall) => {
-                if last_wall.0 < self.size - 5 {
+                if last_wall.0 < self.size - 8 {
                     self.spawn_wall()
                 }
             }
@@ -63,11 +60,12 @@ impl FlappyEnvironment {
 
     fn spawn_wall(&mut self) {
         let mut rng = thread_rng();
-        let hole = rng.gen_range(0..(self.size - 2));
+        let hole_size = 4;
+        let hole = rng.gen_range(0..(self.size - hole_size));
 
-        let mut walls: Vec<(usize, usize)> = (0..(self.size - 1))
+        let mut walls: Vec<(usize, usize)> = (0..self.size)
             .filter_map(|w| {
-                if w != hole && w != hole + 1 {
+                if w < hole || w > hole + hole_size  {
                     Some((self.size - 1, w))
                 } else {
                     None
@@ -118,12 +116,12 @@ impl Environment<DiscreteAction> for FlappyEnvironment {
     }
 
     fn step(&mut self, action: &DiscreteAction) -> Reward {
-        let out_of_bounds = self.update_player(&action);
+        self.update_player(&action);
 
         self.update_walls();
 
         if !self.done {
-            let crashed = self.check_wall_collision() || out_of_bounds;
+            let crashed = self.check_wall_collision();
             self.done |= crashed;
 
             if crashed {
@@ -204,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_no_action_kills_player() {
-        let mut env = FlappyEnvironment::new(5);
+        let mut env = FlappyEnvironment::new(10);
         for _ in 0..1000 {
             env.step(&DiscreteAction(0));
             if env.is_done() {
