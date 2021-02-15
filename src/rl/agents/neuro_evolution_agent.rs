@@ -32,6 +32,38 @@ where
             phantom: PhantomData,
         }
     }
+
+    fn crossover_weights(
+        &self,
+        new_layer: &mut L,
+        other_layer: &L,
+        rng: &mut ndarray_rand::rand::prelude::ThreadRng,
+    ) {
+        let layer_weights = new_layer.get_weights_mut();
+        let other_weights = other_layer.get_weights();
+        for dst in 0..layer_weights.len_of(Axis(0)) {
+            for src in 0..layer_weights.len_of(Axis(1)) {
+                if rng.gen_bool(0.5) {
+                    layer_weights[[dst, src]] = other_weights[[dst, src]];
+                }
+            }
+        }
+    }
+
+    fn crossover_biases(
+        &self,
+        new_layer: &mut L,
+        other_layer: &L,
+        rng: &mut ndarray_rand::rand::prelude::ThreadRng,
+    ) {
+        let layer_biases = new_layer.get_biases_mut();
+        let other_biases = other_layer.get_biases();
+        for dst in 0..layer_biases.len() {
+            if rng.gen_bool(0.5) {
+                layer_biases[dst] = other_biases[dst];
+            }
+        }
+    }
 }
 
 impl<N, L> Agent<DiscreteAction> for NeuroEvolutionAgent<N, L>
@@ -85,30 +117,10 @@ where
         let mut new_network = self.network.clone();
         let new_layers = new_network.get_layers_mut();
         let other_layers = other.network.get_layers();
-        for (new_layer, other_layer) in new_layers.iter_mut().zip(other_layers.iter()) {
-            // crossover biases
-            {
-                let layer_biases = new_layer.get_biases_mut();
-                let other_biases = other_layer.get_biases();
-                for dst in 0..layer_biases.len() {
-                    if rng.gen_bool(0.5) {
-                        layer_biases[dst] = other_biases[dst];
-                    }
-                }
-            }
 
-            // crossover weights
-            {
-                let layer_weights = new_layer.get_weights_mut();
-                let other_weights = other_layer.get_weights();
-                for dst in 0..layer_weights.len_of(Axis(0)) {
-                    for src in 0..layer_weights.len_of(Axis(1)) {
-                        if rng.gen_bool(0.5) {
-                            layer_weights[[dst, src]] = other_weights[[dst, src]];
-                        }
-                    }
-                }
-            }
+        for (new_layer, other_layer) in new_layers.iter_mut().zip(other_layers.iter()) {
+            self.crossover_biases(new_layer, other_layer, &mut rng);
+            self.crossover_weights(new_layer, other_layer, &mut rng);
         }
 
         Self::new(new_network)
