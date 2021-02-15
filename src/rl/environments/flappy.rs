@@ -197,9 +197,12 @@ impl Display for FlappyEnvironment {
             .collect();
 
         // reverse tile lines
-        let tiles = tiles.lines().rev().collect::<Vec<&str>>().join("\n");
+        let tiles = tiles.lines().rev().collect::<Vec<&str>>();
+        let info = format!("player: {:?}", self.player);
+        let mut screen = tiles;
+        screen.push(&info);
 
-        f.write_str(&tiles)
+        f.write_str(&screen.join("\n"))
     }
 }
 
