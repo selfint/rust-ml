@@ -9,6 +9,7 @@ use crate::rl::prelude::*;
 #[derive(Clone)]
 pub struct FlappyEnvironment {
     size: usize,
+    hole_size: usize,
     player: (usize, usize),
     player_vel: isize,
     walls: Vec<(usize, usize)>,
@@ -16,9 +17,10 @@ pub struct FlappyEnvironment {
 }
 
 impl FlappyEnvironment {
-    pub fn new(size: usize) -> Self {
+    pub fn new(size: usize, hole_size: usize) -> Self {
         FlappyEnvironment {
             size,
+            hole_size,
             player: (size / 3, size / 2),
             player_vel: 0,
             walls: vec![],
@@ -65,12 +67,11 @@ impl FlappyEnvironment {
 
     fn spawn_wall(&mut self) {
         let mut rng = thread_rng();
-        let hole_size = 4;
-        let hole = rng.gen_range(0..(self.size - hole_size));
+        let hole = rng.gen_range(0..(self.size - self.hole_size));
 
         let mut walls: Vec<(usize, usize)> = (0..self.size)
             .filter_map(|w| {
-                if w < hole || w > hole + hole_size  {
+                if w < hole || w > hole + self.hole_size  {
                     Some((self.size - 1, w))
                 } else {
                     None
@@ -212,7 +213,7 @@ mod tests {
 
     #[test]
     fn test_no_action_kills_player() {
-        let mut env = FlappyEnvironment::new(10);
+        let mut env = FlappyEnvironment::new(10, 3);
         for _ in 0..1000 {
             env.step(&DiscreteAction(0));
             if env.is_done() {
@@ -225,7 +226,7 @@ mod tests {
 
     #[test]
     fn test_constant_action_kills_player() {
-        let mut env = FlappyEnvironment::new(10);
+        let mut env = FlappyEnvironment::new(10, 3);
         for _ in 0..1000 {
             env.step(&DiscreteAction(1));
             if env.is_done() {
