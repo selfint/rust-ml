@@ -27,16 +27,21 @@ impl FlappyEnvironment {
     }
 
     /// update player position and return true if player is out-of-bounds
-    fn update_player(&mut self, action: &DiscreteAction) {
+    fn update_player(&mut self, action: &DiscreteAction) -> bool {
         if self.player_vel <= 2 && action.0 == 1 {
             self.player_vel += 2
-        } if self.player_vel >= -2 {
+        } else if self.player_vel >= -2 {
             self.player_vel -= 1;
         }
 
         let new_player_y = self.player.1 as isize + self.player_vel;
-        if 0 <= new_player_y && new_player_y <= self.size as isize {
+
+        // update player pos only if it didn't crash
+        if 0 <= new_player_y && new_player_y < self.size as isize {
             self.player.1 = new_player_y.try_into().unwrap();
+            false
+        } else {
+            true
         }
     }
 
@@ -116,15 +121,17 @@ impl Environment<DiscreteAction> for FlappyEnvironment {
     }
 
     fn step(&mut self, action: &DiscreteAction) -> Reward {
-        self.update_player(&action);
+        let border_crash = self.update_player(&action);
 
         self.update_walls();
 
         if !self.done {
-            let crashed = self.check_wall_collision();
-            self.done |= crashed;
+            let wall_crash = self.check_wall_collision();
+            self.done |= wall_crash || border_crash;
 
-            if crashed {
+            if border_crash {
+                -2.
+            } else if wall_crash {
                 -1.
             } else if self.player_on_wall_column() {
                 1.
