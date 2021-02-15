@@ -3,11 +3,11 @@ use ndarray_rand::rand_distr::Uniform;
 use ndarray_rand::RandomExt;
 
 use crate::neuron::activations::Activation;
-use crate::neuron::layers::{Cached, Layer};
+use crate::neuron::layers::Layer;
 use crate::neuron::transfers::Transfer;
 
 #[derive(Clone, Debug)]
-pub struct CachedLayer {
+pub struct StandardLayer {
     input: Option<Array1<f32>>,
     transfer: Option<Array1<f32>>,
     activation: Option<Array1<f32>>,
@@ -19,7 +19,7 @@ pub struct CachedLayer {
     biases: Array1<f32>,
 }
 
-impl CachedLayer {
+impl StandardLayer {
     pub fn new(
         output_size: usize,
         input_size: usize,
@@ -41,7 +41,7 @@ impl CachedLayer {
     }
 }
 
-impl Layer for CachedLayer {
+impl Layer for StandardLayer {
     fn input_size(&self) -> usize {
         self.input_size
     }
@@ -73,35 +73,5 @@ impl Layer for CachedLayer {
 
     fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32> {
         self.activation_fn.activate(transfer)
-    }
-}
-
-impl Cached for CachedLayer {
-    fn get_input(&self) -> Option<&Array1<f32>> {
-        self.input.as_ref()
-    }
-
-    fn get_transfer(&self) -> Option<&Array1<f32>> {
-        self.transfer.as_ref()
-    }
-
-    fn get_activation(&self) -> Option<&Array1<f32>> {
-        self.activation.as_ref()
-    }
-
-    fn cache_input(&mut self, input: Array1<f32>) {
-        self.input = Some(input);
-    }
-
-    fn cache_transfer(&mut self, transfer: Array1<f32>) {
-        self.transfer = Some(transfer);
-    }
-
-    fn cache_activation(&mut self, activation: Array1<f32>) {
-        self.activation = Some(activation);
-    }
-
-    fn apply_activation_derivative(&self, transfer: &Array1<f32>) -> Array1<f32> {
-        self.activation_fn.derive(transfer)
     }
 }

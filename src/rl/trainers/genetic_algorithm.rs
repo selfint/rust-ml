@@ -5,18 +5,20 @@ use ndarray_stats::QuantileExt;
 
 use crate::rl::prelude::*;
 
-/// Allows for learning using a genetic algorithm
+/// Allows Agents to be trained using a genetic algorithm
 pub trait Evolve {
     fn mutate(&mut self, mutation_rate: f64);
     fn crossover(&self, other: &Self) -> Self;
 }
 
-pub struct NeuroEvolutionLearner {
+/// Trains Agent by making it compete against different versions of itself,
+/// and setting the Agent as the best Agent in each generation.
+pub struct GeneticAlgorithm {
     agent_amount: usize,
     mutation_rate: f64,
 }
 
-impl NeuroEvolutionLearner {
+impl GeneticAlgorithm {
     pub fn new(agent_amount: usize, mutation_rate: f64) -> Self {
         Self {
             agent_amount,
@@ -65,7 +67,7 @@ impl NeuroEvolutionLearner {
     }
 }
 
-impl<AC, AG> Learner<AC, AG> for NeuroEvolutionLearner
+impl<AC, AG> Trainer<AC, AG> for GeneticAlgorithm
 where
     AC: Action,
     AG: Agent<AC> + Evolve,
@@ -76,10 +78,9 @@ where
         env: &E,
         epochs: usize,
         verbose: bool,
-    ) -> &'a mut AG {
+    ) {
         // create multiple agents and an env for each one
         let mut agents = vec![agent.clone(); self.agent_amount];
-        let best_agent = agent;
         let mut envs = vec![env.clone(); self.agent_amount];
 
         // run epochs
@@ -111,27 +112,27 @@ where
                 );
             }
 
-            // HILLCLIMBING: save the best agent from each generation
-            *best_agent = agents[scores.argmax().unwrap()].clone();
+            // update agent as the best agent of the current generation
+            *agent = agents[scores.argmax().unwrap()].clone();
 
             // spawn new generation
             agents = self.new_generation(agents.iter().collect(), &scores);
-            agents[0] = best_agent.clone();
-        }
 
-        best_agent
+            // HILLCLIMBING: save the best agent from each generation
+            agents[0] = agent.clone();
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::neuron::activations::{Linear, ReLu, Sigmoid};
-    use crate::neuron::layers::Layer;
+    use crate::neuron::layers::StandardLayer;
     use crate::neuron::networks::StandardFeedForwardNetwork;
-    use crate::neuron::transfers::FullyConnected;
+    use crate::neuron::transfers::Dense;
     use crate::rl::agents::NeuroEvolutionAgent;
     use crate::rl::environments::JumpEnvironment;
-    use crate::rl::learners::neuro_evolution::NeuroEvolutionLearner;
+    use crate::rl::trainers::genetic_algorithm::GeneticAlgorithm;
 
     use super::*;
 
@@ -140,14 +141,14 @@ mod tests {
         let env = JumpEnvironment::new(10);
         let env_observation_space = env.observation_space();
         let env_action_space = env.action_space();
-        let l1 = Layer::new(3, env_observation_space, FullyConnected::new(), ReLu::new());
-        let l2 = Layer::new(4, 3, FullyConnected::new(), Sigmoid::new());
-        let l3 = Layer::new(env_action_space, 4, FullyConnected::new(), Linear::new());
+        let l1 = StandardLayer::new(3, env_observation_space, Dense::new(), ReLu::new());
+        let l2 = StandardLayer::new(4, 3, Dense::new(), Sigmoid::new());
+        let l3 = StandardLayer::new(env_action_space, 4, Dense::new(), Linear::new());
         let network_layers = vec![l1, l2, l3];
         let mut agent = NeuroEvolutionAgent::new(StandardFeedForwardNetwork::new(network_layers));
         let agent_amount = 10;
         let mutation_rate = 0.01;
-        let mut learner = NeuroEvolutionLearner::new(agent_amount, mutation_rate);
+        let mut learner = GeneticAlgorithm::new(agent_amount, mutation_rate);
         let epochs = 10;
         learner.train(&mut agent, &env, epochs, false);
     }

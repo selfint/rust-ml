@@ -228,15 +228,15 @@ mod tests {
     use crate::neuron::layers::CachedLayer;
     use crate::neuron::losses::{mse_loss, sse_loss, MSE, SSE};
     use crate::neuron::networks::{CachedNetwork, Regression};
-    use crate::neuron::transfers::FullyConnected;
+    use crate::neuron::transfers::Dense;
 
     use super::*;
 
     #[test]
     fn test_sgd_optimize_batch_sin_convergence() {
         let mut network = CachedNetwork::new(vec![
-            CachedLayer::new(3, 1, FullyConnected::new(), Sigmoid::new()),
-            CachedLayer::new(1, 3, FullyConnected::new(), Sigmoid::new()),
+            CachedLayer::new(3, 1, Dense::new(), Sigmoid::new()),
+            CachedLayer::new(1, 3, Dense::new(), Sigmoid::new()),
         ]);
 
         let batch_inputs: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
@@ -287,10 +287,10 @@ mod tests {
     #[test]
     fn test_sgd_optimize_once_convergence() {
         let mut network = CachedNetwork::new(vec![
-            CachedLayer::new(3, 2, FullyConnected::new(), Softplus::new()),
-            CachedLayer::new(4, 3, FullyConnected::new(), ReLu::new()),
-            CachedLayer::new(5, 4, FullyConnected::new(), Sigmoid::new()),
-            CachedLayer::new(6, 5, FullyConnected::new(), LeakyReLu::new()),
+            CachedLayer::new(3, 2, Dense::new(), Softplus::new()),
+            CachedLayer::new(4, 3, Dense::new(), ReLu::new()),
+            CachedLayer::new(5, 4, Dense::new(), Sigmoid::new()),
+            CachedLayer::new(6, 5, Dense::new(), LeakyReLu::new()),
         ]);
 
         let input = array![1., 0.];

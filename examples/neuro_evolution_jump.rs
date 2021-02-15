@@ -1,13 +1,13 @@
 use std::{thread, time};
 
 use rust_ml::neuron::activations::{Linear, ReLu, Sigmoid};
-use rust_ml::neuron::layers::Layer;
+use rust_ml::neuron::layers::StandardLayer;
 use rust_ml::neuron::networks::StandardFeedForwardNetwork;
-use rust_ml::neuron::transfers::FullyConnected;
+use rust_ml::neuron::transfers::Dense;
 use rust_ml::rl::agents::NeuroEvolutionAgent;
 use rust_ml::rl::environments::JumpEnvironment;
-use rust_ml::rl::learners::NeuroEvolutionLearner;
 use rust_ml::rl::prelude::*;
+use rust_ml::rl::trainers::genetic_algorithm::GeneticAlgorithm;
 
 fn main() {
     let env_size = 7;
@@ -17,10 +17,10 @@ fn main() {
     let env_action_space = env.action_space();
     let env_observation_space = env.observation_space();
     let layers = vec![
-        Layer::new(3, env_observation_space, FullyConnected::new(), ReLu::new()),
+        StandardLayer::new(3, env_observation_space, Dense::new(), ReLu::new()),
         // bring a bazooka to a knife fight
-        Layer::new(4, 3, FullyConnected::new(), Sigmoid::new()),
-        Layer::new(env_action_space, 4, FullyConnected::new(), Linear::new()),
+        StandardLayer::new(4, 3, Dense::new(), Sigmoid::new()),
+        StandardLayer::new(env_action_space, 4, Dense::new(), Linear::new()),
     ];
     let network = StandardFeedForwardNetwork::new(layers);
 
@@ -28,10 +28,10 @@ fn main() {
     let mut agent = NeuroEvolutionAgent::new(network);
 
     // train learner
-    let epochs = 200;
+    let epochs = 1000;
     let agent_amount = 20;
     let mutation_rate = 0.01;
-    let mut learner = NeuroEvolutionLearner::new(agent_amount, mutation_rate);
+    let mut learner = GeneticAlgorithm::new(agent_amount, mutation_rate);
     learner.train(&mut agent, &env, epochs, true);
 
     // show trained agent

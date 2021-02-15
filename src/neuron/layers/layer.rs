@@ -1,77 +1,65 @@
 use ndarray::prelude::*;
-use ndarray_rand::rand_distr::Uniform;
-use ndarray_rand::RandomExt;
 
-use crate::neuron::activations::Activation;
-use crate::neuron::layers::NeuronLayer;
-use crate::neuron::transfers::Transfer;
+pub trait Layer: Clone {
+    fn input_size(&self) -> usize;
+    fn output_size(&self) -> usize;
 
-#[derive(Clone, Debug)]
-pub struct Layer {
-    input: Option<Array1<f32>>,
-    transfer: Option<Array1<f32>>,
-    activation: Option<Array1<f32>>,
-    transfer_fn: Transfer,
-    activation_fn: Activation,
-    input_size: usize,
-    output_size: usize,
-    weights: Array2<f32>,
-    biases: Array1<f32>,
-}
+    fn get_weights(&self) -> &Array2<f32>;
+    fn get_weights_mut(&mut self) -> &mut Array2<f32>;
 
-impl Layer {
-    pub fn new(
-        output_size: usize,
-        input_size: usize,
-        transfer_fn: Transfer,
-        activation_fn: Activation,
-    ) -> Self {
-        let distribution = Uniform::new(-0.01, 0.01);
-        Self {
-            input: None,
-            transfer: None,
-            activation: None,
-            transfer_fn,
-            activation_fn,
-            input_size,
-            output_size,
-            weights: Array2::random((output_size, input_size), distribution),
-            biases: Array1::random(output_size, distribution),
-        }
+    fn get_biases(&self) -> &Array1<f32>;
+    fn get_biases_mut(&mut self) -> &mut Array1<f32>;
+
+    fn apply_transfer(&self, input: &Array1<f32>) -> Array1<f32>;
+    fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32>;
+
+    fn forward(&self, input: &Array1<f32>) -> Array1<f32> {
+        self.apply_activation(&self.apply_transfer(input))
     }
 }
 
-impl NeuronLayer for Layer {
-    fn input_size(&self) -> usize {
-        self.input_size
+pub trait Cached: Layer {
+    fn get_input(&self) -> Option<&Array1<f32>>;
+    fn get_transfer(&self) -> Option<&Array1<f32>>;
+    fn get_activation(&self) -> Option<&Array1<f32>>;
+
+    fn cache_input(&mut self, input: Array1<f32>);
+    fn cache_transfer(&mut self, transfer: Array1<f32>);
+    fn cache_activation(&mut self, activation: Array1<f32>);
+
+    fn apply_activation_derivative(&self, transfer: &Array1<f32>) -> Array1<f32>;
+
+    fn forward_cached(&mut self, input: &Array1<f32>) -> Array1<f32> {
+        let transfer = self.apply_transfer(input);
+        let activation = self.apply_activation(&transfer);
+
+        self.cache_input(input.clone());
+        self.cache_transfer(transfer);
+        self.cache_activation(activation.clone());
+
+        activation
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::neuron::activations::Linear;
+    use crate::neuron::layers::StandardLayer;
+    use crate::neuron::transfers::Dense;
+
+    use super::*;
+
+    #[test]
+    fn test_layer() {
+        let layer = StandardLayer::new(3, 2, Dense::new(), Linear::new());
+        let output = layer.forward(&arr1(&[1., 0.]));
+        assert_eq!(output.len(), 3);
     }
 
-    fn output_size(&self) -> usize {
-        self.output_size
-    }
-
-    fn get_weights(&self) -> &Array2<f32> {
-        &self.weights
-    }
-
-    fn get_biases(&self) -> &Array1<f32> {
-        &self.biases
-    }
-
-    fn get_weights_mut(&mut self) -> &mut Array2<f32> {
-        &mut self.weights
-    }
-
-    fn get_biases_mut(&mut self) -> &mut Array1<f32> {
-        &mut self.biases
-    }
-
-    fn apply_transfer(&self, input: &Array1<f32>) -> Array1<f32> {
-        self.transfer_fn
-            .transfer(&self.weights, &self.biases, input)
-    }
-
-    fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32> {
-        self.activation_fn.activate(transfer)
+    #[test]
+    fn test_sizes() {
+        let layer = StandardLayer::new(3, 2, Dense::new(), Linear::new());
+        assert_eq!(layer.input_size(), 2);
+        assert_eq!(layer.output_size(), 3);
     }
 }

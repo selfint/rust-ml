@@ -1,9 +1,9 @@
 pub use cached_layer::CachedLayer;
-pub use fully_connected::FullyConnectedLayer;
-pub use layer::Layer;
-pub use neuron_layer::{Cached, NeuronLayer};
+pub use dense::Dense;
+pub use layer::{Cached, Layer};
+pub use standard_layer::StandardLayer;
 
 mod cached_layer;
-mod fully_connected;
+mod dense;
 mod layer;
-mod neuron_layer;
+mod standard_layer;
