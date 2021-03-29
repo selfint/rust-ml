@@ -14,6 +14,8 @@ use rust_ml::rl::environments::FlappyEnvironment;
 use rust_ml::rl::trainers::genetic_algorithm::GeneticAlgorithm;
 use rust_ml::rl::trainers::q_learning::{QFunction, QLearner};
 
+
+
 fn main() {
     // build training environment
     let env_size = 12;

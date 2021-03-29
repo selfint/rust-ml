@@ -71,7 +71,7 @@ impl FlappyEnvironment {
 
         let mut walls: Vec<(usize, usize)> = (0..self.size)
             .filter_map(|w| {
-                if w < hole || w > hole + self.hole_size  {
+                if w < hole || w > hole + self.hole_size {
                     Some((self.size - 1, w))
                 } else {
                     None

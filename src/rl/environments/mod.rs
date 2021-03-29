@@ -1,7 +1,7 @@
 pub use environment::Environment;
-pub use jump::JumpEnvironment;
 pub use flappy::FlappyEnvironment;
+pub use jump::JumpEnvironment;
 
 mod environment;
-mod jump;
 mod flappy;
+mod jump;
