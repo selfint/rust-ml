@@ -173,16 +173,16 @@ impl Display for JumpEnvironment {
             let (ground, wall, player) = (state[t], state[t + 1], state[t + 2]);
             tiles.push(if player > 0. {
                 if wall > 0. {
-                    'X'
+                    '💥'
                 } else {
-                    'P'
+                    '🏀'
                 }
             } else if wall > 0. {
-                '|'
+                '🧱'
             } else if ground > 0. {
-                '#'
+                '🟩'
             } else {
-                ' '
+                '🟦'
             });
         }
 
