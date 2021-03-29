@@ -2,19 +2,9 @@ use rust_ml::rl::prelude::*;
 
 use std::{thread, time};
 
-use ndarray::prelude::*;
-
-use rust_ml::neuron::activations::{LeakyReLu, Sigmoid, Softplus};
-use rust_ml::neuron::layers::Dense;
-use rust_ml::neuron::networks::StandardFeedForwardNetwork;
-
-use rust_ml::rl::agents::NeuroEvolutionAgent;
 use rust_ml::rl::agents::QTableAgent;
 use rust_ml::rl::environments::FlappyEnvironment;
-use rust_ml::rl::trainers::genetic_algorithm::GeneticAlgorithm;
-use rust_ml::rl::trainers::q_learning::{QFunction, QLearner};
-
-
+use rust_ml::rl::trainers::q_learning::QLearner;
 
 fn main() {
     // build training environment
