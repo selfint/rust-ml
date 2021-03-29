@@ -135,6 +135,74 @@ impl SGD {
 
         (network_weights_gradients, network_biases_gradients)
     }
+
+    fn get_batch_gradients<N, L>(
+        &self,
+        network: &mut N,
+        batch_inputs: &[Array1<f32>],
+        batch_expected: &[Array1<f32>],
+    ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>)
+    where
+        L: Cached,
+        N: CachedRegression<L>,
+    {
+        assert_eq!(
+            batch_inputs.len(),
+            batch_expected.len(),
+            "batch inputs and expected must be of same length"
+        );
+
+        // gradients are empty if batch is empty
+        if batch_inputs.is_empty() {
+            return (vec![], vec![]);
+        }
+
+        // calculate batch gradients
+        let batch_length = batch_inputs.len() as f32;
+        batch_inputs
+            .iter()
+            .zip(batch_expected.iter())
+            .map(|(input, expected)| {
+                let (weight_gradients, bias_gradients) =
+                    self.get_gradients(network, input, expected);
+
+                (
+                    weight_gradients
+                        .iter()
+                        .map(|layer_weights_gradients| layer_weights_gradients / batch_length)
+                        .collect(),
+                    bias_gradients
+                        .iter()
+                        .map(|layer_biases_gradients| layer_biases_gradients / batch_length)
+                        .collect(),
+                )
+            })
+            .reduce(
+                |(total_weights_gradients, total_biases_gradients): (
+                    Vec<Array2<f32>>,
+                    Vec<Array1<f32>>,
+                ),
+                 (weights_gradients, biases_gradients)| {
+                    (
+                        total_weights_gradients
+                            .iter()
+                            .zip(weights_gradients.iter())
+                            .map(|(total_layer_weights_gradients, layer_weights_gradients)| {
+                                total_layer_weights_gradients + layer_weights_gradients
+                            })
+                            .collect(),
+                        total_biases_gradients
+                            .iter()
+                            .zip(biases_gradients.iter())
+                            .map(|(total_layer_biases_gradients, layer_biases_gradients)| {
+                                total_layer_biases_gradients + layer_biases_gradients
+                            })
+                            .collect(),
+                    )
+                },
+            )
+            .unwrap()
+    }
 }
 
 impl<N, L> OptimizeOnce<N, L> for SGD
@@ -166,57 +234,14 @@ where
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
     ) {
-        assert_eq!(
-            batch_inputs.len(),
-            batch_expected.len(),
-            "batch inputs and expected must be of same length"
-        );
+        let (weights_gradients, biases_gradients) =
+            self.get_batch_gradients(network, batch_inputs, batch_expected);
 
-        // nothing to do if batch is empty
-        if batch_inputs.is_empty() {
-            return;
-        }
-
-        // calculate avg weight and bias gradients
-        let (mut total_weights_gradients, mut total_biases_gradients) =
-            self.get_gradients(network, &batch_inputs[0], &batch_expected[0]);
-
-        let total_layers = network.len();
-        for (input, expected) in batch_inputs
-            .iter()
-            .skip(1)
-            .zip(batch_expected.iter().skip(1))
-        {
-            let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
-            for i in 0..total_layers {
-                total_weights_gradients[i] = &total_weights_gradients[i] + &weight_gradients[i];
-                total_biases_gradients[i] = &total_biases_gradients[i] + &bias_gradients[i];
-            }
-        }
-
-        let batch_size = batch_inputs.len() as f32;
-        let avg_weights_gradients: Vec<Array2<f32>> = total_weights_gradients
-            .iter()
-            .map(|g| g / batch_size)
-            .collect();
-        let avg_biases_gradients: Vec<Array1<f32>> = total_biases_gradients
-            .iter()
-            .map(|g| g / batch_size)
-            .collect();
-
-        for (weights, gradients) in network
-            .get_weights_mut()
-            .iter_mut()
-            .zip(avg_weights_gradients)
-        {
+        for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weights_gradients) {
             **weights = weights.clone() - gradients * self.learning_rate;
         }
 
-        for (biases, gradients) in network
-            .get_biases_mut()
-            .iter_mut()
-            .zip(avg_biases_gradients)
-        {
+        for (biases, gradients) in network.get_biases_mut().iter_mut().zip(biases_gradients) {
             **biases = biases.clone() - gradients * self.learning_rate;
         }
     }
