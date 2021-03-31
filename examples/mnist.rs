@@ -19,9 +19,8 @@ fn read_dataset(
     labels: &mut Vec<Array1<f32>>,
 ) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path(path)?;
-    for result in rdr.records() {
-        let csv_row = result?;
-        let record = csv_row
+    for csv_row in rdr.records() {
+        let record = csv_row?
             .iter()
             .map(|pixel| pixel.parse::<u8>().unwrap())
             .collect::<Vec<u8>>();
