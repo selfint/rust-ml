@@ -66,13 +66,57 @@ fn read_training_data() -> Result<
     Ok((train_rows, train_labels, test_rows, test_labels))
 }
 
+fn print_network_score(
+    network: &CachedNetwork<CachedLayer>,
+    e: i32,
+    sample_train_x: &[Array1<f32>],
+    sample_train_y: &[Array1<f32>],
+    sample_test_x: &[Array1<f32>],
+    sample_test_y: &[Array1<f32>],
+) {
+    let train_samples = sample_train_x.len();
+    let test_samples = sample_test_x.len();
+    let mut train_loss = 0.;
+    let mut train_mistakes = 0.;
+    for (input, expected) in sample_train_x.iter().zip(sample_train_y.iter()) {
+        let prediction = network.predict(input);
+        if prediction.argmax().unwrap() != expected.argmax().unwrap() {
+            train_mistakes += 1.;
+        }
+
+        train_loss += cce_loss(&prediction, expected).sum();
+    }
+
+    let mut test_loss = 0.;
+    let mut test_mistakes = 0.;
+    for (input, expected) in sample_test_x.iter().zip(sample_test_y.iter()) {
+        let prediction = network.predict(input);
+        if prediction.argmax().unwrap() != expected.argmax().unwrap() {
+            test_mistakes += 1.;
+        }
+
+        test_loss += cce_loss(&prediction, expected).sum();
+    }
+
+    println!(
+        "epoch {} | train loss: {} accuracy: {}% | test loss: {} accuracy: {}%",
+        e,
+        train_loss / (train_samples as f32),
+        (1. - (train_mistakes / (train_samples as f32))) * 100.,
+        test_loss / (test_samples as f32),
+        (1. - (test_mistakes / (test_samples as f32))) * 100.,
+    );
+}
+
 fn main() {
     // parameters
     let train_samples = 60_000;
     let test_samples = 10_000;
     let epochs = 100_000_000;
     let batch_size = 100;
-    let learning_rate = 0.3;
+    let mut learning_rate = 3.;
+    let learning_rate_decay = 0.8;
+    let min_learning_rate = 0.001;
 
     let (train_x, train_y, test_x, test_y) = read_training_data().expect("failed to load datasets");
     let sample_train_x = &train_x[0..train_samples];
@@ -85,7 +129,7 @@ fn main() {
         CachedLayer::new(10, 10, Dense::new(), Softplus::new()),
     ]);
 
-    let optimizer = SGD::new(learning_rate, CCE::new());
+    let optimizer = SGD::new(CCE::new());
 
     let batches = sample_train_x.len() / batch_size;
 
@@ -95,40 +139,21 @@ fn main() {
             let batch_inputs = &sample_train_x[b..(b + batch_size)];
             let batch_expected = &sample_train_y[b..(b + batch_size)];
 
-            optimizer.optimize_batch(&mut network, batch_inputs, batch_expected);
+            optimizer.optimize_batch(&mut network, batch_inputs, batch_expected, learning_rate);
         }
 
         if e % 10 == 0 {
-            let mut train_loss = 0.;
-            let mut train_mistakes = 0.;
-            for (input, expected) in sample_train_x.iter().zip(sample_train_y.iter()) {
-                let prediction = network.predict(input);
-                if prediction.argmax().unwrap() != expected.argmax().unwrap() {
-                    train_mistakes += 1.;
-                }
+            print_network_score(&network, e, sample_train_x, sample_train_y, sample_test_x, sample_test_y);
+        }
 
-                train_loss += cce_loss(&prediction, expected).sum();
-            }
+        // decrease the learning rate gradually
+        if e % 10 == 0 && learning_rate > min_learning_rate {
+            learning_rate *= learning_rate_decay;
+        }
 
-            let mut test_loss = 0.;
-            let mut test_mistakes = 0.;
-            for (input, expected) in sample_test_x.iter().zip(sample_test_y.iter()) {
-                let prediction = network.predict(input);
-                if prediction.argmax().unwrap() != expected.argmax().unwrap() {
-                    test_mistakes += 1.;
-                }
-
-                test_loss += cce_loss(&prediction, expected).sum();
-            }
-
-            println!(
-                "epoch {} | train loss: {} accuracy: {}% | test loss: {} accuracy: {}%",
-                e,
-                train_loss / (train_samples as f32),
-                (1. - (train_mistakes / (train_samples as f32))) * 100.,
-                test_loss / (test_samples as f32),
-                (1. - (test_mistakes / (test_samples as f32))) * 100.,
-            );
+        // make sure we don't learn too slowly
+        if learning_rate < min_learning_rate {
+            learning_rate = min_learning_rate;
         }
     }
 
