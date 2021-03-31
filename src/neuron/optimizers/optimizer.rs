@@ -8,7 +8,13 @@ where
     L: Cached,
     N: CachedRegression<L>,
 {
-    fn optimize_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>);
+    fn optimize_once(
+        &self,
+        network: &mut N,
+        input: &Array1<f32>,
+        expected: &Array1<f32>,
+        learning_rate: f32,
+    );
 }
 
 pub trait OptimizeBatch<N, L>: Clone
@@ -21,5 +27,6 @@ where
         network: &mut N,
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
+        learning_rate: f32,
     );
 }

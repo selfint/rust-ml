@@ -7,16 +7,12 @@ use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
 
 #[derive(Clone)]
 pub struct SGD {
-    learning_rate: f32,
     loss: Loss,
 }
 
 impl SGD {
-    pub fn new(learning_rate: f32, loss: Loss) -> Self {
-        Self {
-            learning_rate,
-            loss,
-        }
+    pub fn new(loss: Loss) -> Self {
+        Self { loss }
     }
 
     fn chain_rule_weights(
@@ -210,15 +206,21 @@ where
     L: Cached,
     N: CachedRegression<L>,
 {
-    fn optimize_once(&self, network: &mut N, input: &Array1<f32>, expected: &Array1<f32>) {
+    fn optimize_once(
+        &self,
+        network: &mut N,
+        input: &Array1<f32>,
+        expected: &Array1<f32>,
+        learning_rate: f32,
+    ) {
         let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
-            **weights = weights.clone() - gradients * self.learning_rate;
+            **weights = weights.clone() - gradients * learning_rate;
         }
 
         for (biases, gradients) in network.get_biases_mut().iter_mut().zip(bias_gradients) {
-            **biases = biases.clone() - gradients * self.learning_rate;
+            **biases = biases.clone() - gradients * learning_rate;
         }
     }
 }
@@ -233,16 +235,17 @@ where
         network: &mut N,
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
+        learning_rate: f32,
     ) {
         let (weights_gradients, biases_gradients) =
             self.get_batch_gradients(network, batch_inputs, batch_expected);
 
         for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weights_gradients) {
-            **weights = weights.clone() - gradients * self.learning_rate;
+            **weights = weights.clone() - gradients * learning_rate;
         }
 
         for (biases, gradients) in network.get_biases_mut().iter_mut().zip(biases_gradients) {
-            **biases = biases.clone() - gradients * self.learning_rate;
+            **biases = biases.clone() - gradients * learning_rate;
         }
     }
 }
@@ -274,7 +277,7 @@ mod tests {
             .map(|&x| array![(x as f32).sin()])
             .collect();
 
-        let optimizer = SGD::new(5., SSE::new());
+        let optimizer = SGD::new(SSE::new());
 
         for e in 0..1_000 {
             let mut cost = 0.;
@@ -287,7 +290,7 @@ mod tests {
                 eprintln!("epoch: {} cost: {}", e, cost / 100.);
             }
 
-            optimizer.optimize_batch(&mut network, &batch_inputs, &batch_expected);
+            optimizer.optimize_batch(&mut network, &batch_inputs, &batch_expected, 5.);
         }
 
         let mut total_cost = 0.;
@@ -321,10 +324,10 @@ mod tests {
         let input = array![1., 0.];
         let expected = array![0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
 
-        let optimizer = SGD::new(0.1, MSE::new());
+        let optimizer = SGD::new(MSE::new());
 
         for _ in 0..200 {
-            optimizer.optimize_once(&mut network, &input, &expected);
+            optimizer.optimize_once(&mut network, &input, &expected, 0.1);
         }
 
         let prediction = network.predict(&input);
