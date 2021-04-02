@@ -21,29 +21,19 @@ impl SGD {
         da_dt: &Array1<f32>,
         dt_dw: &Array1<f32>,
     ) -> Array2<f32> {
-        // TODO: convert this to matrix multiplication - issue #35
         let layer_outputs = da_dt.len();
         let layer_inputs = dt_dw.len();
-        let mut layer_weights_gradients = Array2::zeros((layer_outputs, layer_inputs));
 
-        // derivatives of the transfer with respect to the weights
-        for j in 0..layer_outputs {
-            // derivatives of the activation of the weight's dst node
-            // with respect to the transfer of the weight's src node
-            let da_dt_j = da_dt[j];
+        // gradient of the loss with respect to the transfer of the current layer
+        // transposed for matrix multiplication
+        let dl_dt = Array2::from_shape_vec((layer_outputs, 1), (dl_da * da_dt).to_vec()).unwrap();
 
-            // derivatives of the loss with respect to the activation of
-            // this weight's dst node
-            let dl_da_j = dl_da[j];
+        // convert gradient of the transitions with respect to the weigts into a 2d
+        // array with one row
+        let dt_dw = Array2::from_shape_vec((1, layer_inputs), dt_dw.to_vec()).unwrap();
 
-            for k in 0..layer_inputs {
-                // derivative of transfer with respect to this weight
-                let dt_dw_jk = dt_dw[k];
-
-                // chain rule - derivatives of the loss with respect to this weight
-                layer_weights_gradients[[j, k]] = dl_da_j * da_dt_j * dt_dw_jk;
-            }
-        }
+        // matrix with dimensions layer_outputs X layer_inputs
+        let layer_weights_gradients = dl_dt.dot(&dt_dw);
 
         layer_weights_gradients
     }
