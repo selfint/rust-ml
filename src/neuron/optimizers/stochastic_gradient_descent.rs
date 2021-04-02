@@ -63,9 +63,9 @@ impl SGD {
 
         // chain rule - derivatives of loss with respect to previous layer's
         // activations
-        let dl_dap = dl_da_sum * da_dt_sum * dt_dap_sum;
+        let previous_layer_activations_gradient = dl_da_sum * da_dt_sum * dt_dap_sum;
 
-        dl_dap
+        previous_layer_activations_gradient
     }
 
     fn get_gradients<N, L>(
