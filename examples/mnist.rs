@@ -3,7 +3,7 @@ use std::error::Error;
 use ndarray::prelude::*;
 use ndarray_stats::QuantileExt;
 
-use rust_ml::neuron::activations::Softplus;
+use rust_ml::neuron::activations::{LeakyReLu, Linear};
 use rust_ml::neuron::layers::CachedLayer;
 use rust_ml::neuron::losses::{cce_loss, CCE};
 use rust_ml::neuron::networks::{CachedNetwork, Regression};
@@ -98,7 +98,7 @@ fn print_network_score(
     }
 
     println!(
-        "epoch {} | train loss: {} accuracy: {}% | test loss: {} accuracy: {}%",
+        "epoch {} | train loss: {:.4} accuracy: {:.2}% | test loss: {:.4} accuracy: {:.2}%",
         e,
         train_loss / (train_samples as f32),
         (1. - (train_mistakes / (train_samples as f32))) * 100.,
@@ -109,56 +109,49 @@ fn print_network_score(
 
 fn main() {
     // parameters
-    let train_samples = 60_000;
-    let test_samples = 10_000;
     let epochs = 100_000_000;
-    let batch_size = 100;
-    let mut learning_rate = 3.;
-    let learning_rate_decay = 0.8;
-    let min_learning_rate = 0.001;
+    let batch_size = 50;
+    let learning_rate = 0.05;
 
+    // load data
+    println!("Loading MNIST dataset");
     let (train_x, train_y, test_x, test_y) = read_training_data().expect("failed to load datasets");
-    let sample_train_x = &train_x[0..train_samples];
-    let sample_train_y = &train_y[0..train_samples];
-    let sample_test_x = &test_x[0..test_samples];
-    let sample_test_y = &test_y[0..test_samples];
+    println!("Loaded training data: {} rows", train_x.len());
+    println!("Loaded test data: {} rows", test_x.len());
 
+    // build network and optimizer
+    println!("building network and optimizer");
     let mut network = CachedNetwork::new(vec![
-        CachedLayer::new(10, 784, Dense::new(), Softplus::new()),
-        CachedLayer::new(10, 10, Dense::new(), Softplus::new()),
+        CachedLayer::new(128, 784, Dense::new(), LeakyReLu::new()),
+        CachedLayer::new(10, 128, Dense::new(), Linear::new()),
     ]);
-
     let optimizer = SGD::new(CCE::new());
 
-    let batches = sample_train_x.len() / batch_size;
-
+    // training loop
+    println!("beginning training loop");
+    let batches = train_x.len() / batch_size;
     for e in 0..epochs {
         // split data into batches
         for b in 0..batches {
-            let batch_inputs = &sample_train_x[b..(b + batch_size)];
-            let batch_expected = &sample_train_y[b..(b + batch_size)];
+            print!(
+                "batch {}/{} ({:.2}%)                  \r",
+                b,
+                batches,
+                (b as f32 / batches as f32) * 100.
+            );
+            let batch_inputs = &train_x[b..(b + batch_size)];
+            let batch_expected = &train_y[b..(b + batch_size)];
 
             optimizer.optimize_batch(&mut network, batch_inputs, batch_expected, learning_rate);
         }
 
-        if e % 10 == 0 {
-            print_network_score(&network, e, sample_train_x, sample_train_y, sample_test_x, sample_test_y);
-        }
-
-        // decrease the learning rate gradually
-        if e % 10 == 0 && learning_rate > min_learning_rate {
-            learning_rate *= learning_rate_decay;
-        }
-
-        // make sure we don't learn too slowly
-        if learning_rate < min_learning_rate {
-            learning_rate = min_learning_rate;
-        }
+        print_network_score(&network, e, &train_x, &train_y, &test_x, &test_y);
     }
 
+    // show final results
     let mut test_loss = 0.;
     let mut test_mistakes = 0.;
-    for (input, expected) in sample_test_x.iter().zip(sample_test_y.iter()) {
+    for (input, expected) in test_x.iter().zip(test_y.iter()) {
         let prediction = network.predict(input);
         if prediction.argmax().unwrap() != expected.argmax().unwrap() {
             test_mistakes += 1.;
@@ -169,8 +162,8 @@ fn main() {
 
     println!(
         "final test loss: {} accuracy: {}%",
-        test_loss / (test_samples as f32),
-        (1. - (test_mistakes / (test_samples as f32))) * 100.,
+        test_loss,
+        (1. - (test_mistakes / (test_x.len() as f32))) * 100.,
     );
     println!("trained network: {:?}", network);
 }
