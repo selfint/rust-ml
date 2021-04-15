@@ -67,17 +67,17 @@ fn read_training_data() -> Result<
 
 fn print_network_score(
     network: &CachedNetwork<CachedLayer>,
-    e: i32,
-    sample_train_x: &[Array1<f32>],
-    sample_train_y: &[Array1<f32>],
-    sample_test_x: &[Array1<f32>],
-    sample_test_y: &[Array1<f32>],
+    epoch: i32,
+    train_x: &[Array1<f32>],
+    train_y: &[Array1<f32>],
+    test_x: &[Array1<f32>],
+    test_y: &[Array1<f32>],
 ) {
-    let train_samples = sample_train_x.len();
-    let test_samples = sample_test_x.len();
+    let train_samples = train_x.len();
+    let test_samples = test_x.len();
     let mut train_loss = 0.;
     let mut train_mistakes = 0.;
-    for (input, expected) in sample_train_x.iter().zip(sample_train_y.iter()) {
+    for (input, expected) in train_x.iter().zip(train_y.iter()) {
         let prediction = network.predict(input);
         if prediction.argmax().unwrap() != expected.argmax().unwrap() {
             train_mistakes += 1.;
@@ -88,7 +88,7 @@ fn print_network_score(
 
     let mut test_loss = 0.;
     let mut test_mistakes = 0.;
-    for (input, expected) in sample_test_x.iter().zip(sample_test_y.iter()) {
+    for (input, expected) in test_x.iter().zip(test_y.iter()) {
         let prediction = network.predict(input);
         if prediction.argmax().unwrap() != expected.argmax().unwrap() {
             test_mistakes += 1.;
@@ -99,7 +99,7 @@ fn print_network_score(
 
     println!(
         "epoch {} | train loss: {:.4} accuracy: {:.2}% | test loss: {:.4} accuracy: {:.2}%",
-        e,
+        epoch,
         train_loss / (train_samples as f32),
         (1. - (train_mistakes / (train_samples as f32))) * 100.,
         test_loss / (test_samples as f32),
