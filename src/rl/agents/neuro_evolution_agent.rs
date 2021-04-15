@@ -1,42 +1,28 @@
-use std::marker::PhantomData;
-
 use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use ndarray_stats::QuantileExt;
 
-use crate::neuron::layers::Layer;
-use crate::neuron::networks::Regression;
+use crate::neuron::layers::LayerStruct;
+use crate::neuron::networks::NetworkStruct;
 use crate::rl::prelude::*;
 use crate::rl::trainers::genetic_algorithm::Evolve;
 
 /// An `Agent` with a `Network` that can `Evolve` and perform `DiscreteAction`s or
 /// `ContinuousAction`
 #[derive(Clone)]
-pub struct NeuroEvolutionAgent<N, L>
-where
-    L: Layer,
-    N: Regression<L>,
-{
-    network: N,
-    phantom: PhantomData<L>,
+pub struct NeuroEvolutionAgent {
+    network: NetworkStruct,
 }
 
-impl<N, L> NeuroEvolutionAgent<N, L>
-where
-    L: Layer,
-    N: Regression<L>,
-{
-    pub fn new(network: N) -> Self {
-        Self {
-            network,
-            phantom: PhantomData,
-        }
+impl NeuroEvolutionAgent {
+    pub fn new(network: NetworkStruct) -> Self {
+        Self { network }
     }
 
     fn crossover_weights(
         &self,
-        new_layer: &mut L,
-        other_layer: &L,
+        new_layer: &mut LayerStruct,
+        other_layer: &LayerStruct,
         rng: &mut ndarray_rand::rand::prelude::ThreadRng,
     ) {
         let layer_weights = new_layer.get_weights_mut();
@@ -52,8 +38,8 @@ where
 
     fn crossover_biases(
         &self,
-        new_layer: &mut L,
-        other_layer: &L,
+        new_layer: &mut LayerStruct,
+        other_layer: &LayerStruct,
         rng: &mut ndarray_rand::rand::prelude::ThreadRng,
     ) {
         let layer_biases = new_layer.get_biases_mut();
@@ -66,31 +52,19 @@ where
     }
 }
 
-impl<N, L> Agent<DiscreteAction> for NeuroEvolutionAgent<N, L>
-where
-    L: Layer,
-    N: Regression<L>,
-{
+impl Agent<DiscreteAction> for NeuroEvolutionAgent {
     fn act(&mut self, state: &State) -> DiscreteAction {
         DiscreteAction(self.network.predict(state).argmax().unwrap())
     }
 }
 
-impl<N, L> Agent<ContinuousAction> for NeuroEvolutionAgent<N, L>
-where
-    L: Layer,
-    N: Regression<L>,
-{
+impl Agent<ContinuousAction> for NeuroEvolutionAgent {
     fn act(&mut self, state: &State) -> ContinuousAction {
         ContinuousAction(self.network.predict(state))
     }
 }
 
-impl<N, L> Evolve for NeuroEvolutionAgent<N, L>
-where
-    L: Layer,
-    N: Regression<L>,
-{
+impl Evolve for NeuroEvolutionAgent {
     /// mutate weights and biases of agent's network
     fn mutate(&mut self, mutation_rate: f64) {
         let mut rng = thread_rng();

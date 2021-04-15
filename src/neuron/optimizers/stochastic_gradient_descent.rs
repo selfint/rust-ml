@@ -1,17 +1,16 @@
 use ndarray::prelude::*;
 
-use crate::neuron::layers::Cached;
-use crate::neuron::losses::Loss;
-use crate::neuron::networks::CachedRegression;
+use crate::neuron::losses::LossStruct;
+use crate::neuron::networks::NetworkStruct;
 use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
 
 #[derive(Clone)]
 pub struct SGD {
-    loss: Loss,
+    loss: LossStruct,
 }
 
 impl SGD {
-    pub fn new(loss: Loss) -> Self {
+    pub fn new(loss: LossStruct) -> Self {
         Self { loss }
     }
 
@@ -68,16 +67,12 @@ impl SGD {
         previous_layer_activations_gradient
     }
 
-    fn get_gradients<N, L>(
+    fn get_gradients(
         &self,
-        network: &mut N,
+        network: &mut NetworkStruct,
         input: &Array1<f32>,
         expected: &Array1<f32>,
-    ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>)
-    where
-        L: Cached,
-        N: CachedRegression<L>,
-    {
+    ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>) {
         let mut network_weights_gradients = vec![];
         let mut network_biases_gradients = vec![];
 
@@ -89,7 +84,7 @@ impl SGD {
         for layer in network.get_layers().iter().rev() {
             // derivatives of the activations with respect to the transfers
             // NOTE: unwrap is safe since we called `predict_cached`
-            let da_dt = layer.apply_activation_derivative(layer.get_transfer().unwrap());
+            let da_dt = layer.apply_derivation(layer.get_transfer().unwrap());
 
             // derivatives of the transfers with respect to the weights - these are
             // the activations of the previous layer, which is also the input to the
@@ -122,16 +117,12 @@ impl SGD {
         (network_weights_gradients, network_biases_gradients)
     }
 
-    fn get_batch_gradients<N, L>(
+    fn get_batch_gradients(
         &self,
-        network: &mut N,
+        network: &mut NetworkStruct,
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
-    ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>)
-    where
-        L: Cached,
-        N: CachedRegression<L>,
-    {
+    ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>) {
         assert_eq!(
             batch_inputs.len(),
             batch_expected.len(),
@@ -191,14 +182,10 @@ impl SGD {
     }
 }
 
-impl<N, L> OptimizeOnce<N, L> for SGD
-where
-    L: Cached,
-    N: CachedRegression<L>,
-{
+impl OptimizeOnce for SGD {
     fn optimize_once(
         &self,
-        network: &mut N,
+        network: &mut NetworkStruct,
         input: &Array1<f32>,
         expected: &Array1<f32>,
         learning_rate: f32,
@@ -215,14 +202,10 @@ where
     }
 }
 
-impl<N, L> OptimizeBatch<N, L> for SGD
-where
-    L: Cached,
-    N: CachedRegression<L>,
-{
+impl OptimizeBatch for SGD {
     fn optimize_batch(
         &self,
-        network: &mut N,
+        network: &mut NetworkStruct,
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
         learning_rate: f32,
@@ -242,19 +225,19 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::neuron::activations::{LeakyReLu, ReLu, Sigmoid, Softplus};
-    use crate::neuron::layers::CachedLayer;
-    use crate::neuron::losses::{mse_loss, sse_loss, MSE, SSE};
-    use crate::neuron::networks::{CachedNetwork, Regression};
-    use crate::neuron::transfers::Dense;
+    use crate::neuron::activations::{leaky_relu, relu, sigmoid, softplus};
+    use crate::neuron::layers::LayerStruct;
+    use crate::neuron::losses::{mse, mse_loss, sse, sse_loss};
+    use crate::neuron::networks::NetworkStruct;
+    use crate::neuron::transfers::dense;
 
     use super::*;
 
     #[test]
     fn test_sgd_optimize_batch_sin_convergence() {
-        let mut network = CachedNetwork::new(vec![
-            CachedLayer::new(3, 1, Dense::new(), Sigmoid::new()),
-            CachedLayer::new(1, 3, Dense::new(), Sigmoid::new()),
+        let mut network = NetworkStruct::new(vec![
+            LayerStruct::new(3, 1, dense(), sigmoid()),
+            LayerStruct::new(1, 3, dense(), sigmoid()),
         ]);
 
         let batch_inputs: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
@@ -267,7 +250,7 @@ mod tests {
             .map(|&x| array![(x as f32).sin()])
             .collect();
 
-        let optimizer = SGD::new(SSE::new());
+        let optimizer = SGD::new(sse());
 
         for e in 0..1_000 {
             let mut cost = 0.;
@@ -304,17 +287,17 @@ mod tests {
 
     #[test]
     fn test_sgd_optimize_once_convergence() {
-        let mut network = CachedNetwork::new(vec![
-            CachedLayer::new(3, 2, Dense::new(), Softplus::new()),
-            CachedLayer::new(4, 3, Dense::new(), ReLu::new()),
-            CachedLayer::new(5, 4, Dense::new(), Sigmoid::new()),
-            CachedLayer::new(6, 5, Dense::new(), LeakyReLu::new()),
+        let mut network = NetworkStruct::new(vec![
+            LayerStruct::new(3, 2, dense(), softplus()),
+            LayerStruct::new(4, 3, dense(), relu()),
+            LayerStruct::new(5, 4, dense(), sigmoid()),
+            LayerStruct::new(6, 5, dense(), leaky_relu()),
         ]);
 
         let input = array![1., 0.];
         let expected = array![0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
 
-        let optimizer = SGD::new(MSE::new());
+        let optimizer = SGD::new(mse());
 
         for _ in 0..200 {
             optimizer.optimize_once(&mut network, &input, &expected, 0.1);

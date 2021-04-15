@@ -3,12 +3,12 @@ use std::error::Error;
 use ndarray::prelude::*;
 use ndarray_stats::QuantileExt;
 
-use rust_ml::neuron::activations::{LeakyReLu, Linear};
-use rust_ml::neuron::layers::CachedLayer;
-use rust_ml::neuron::losses::{cce_loss, CCE};
-use rust_ml::neuron::networks::{CachedNetwork, Regression};
+use rust_ml::neuron::activations::{leaky_relu, linear};
+use rust_ml::neuron::layers::LayerStruct;
+use rust_ml::neuron::losses::{cce, cce_loss};
+use rust_ml::neuron::networks::NetworkStruct;
 use rust_ml::neuron::optimizers::{OptimizeBatch, SGD};
-use rust_ml::neuron::transfers::Dense;
+use rust_ml::neuron::transfers::dense;
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
 const MNIST_TEST_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_test.csv";
@@ -66,7 +66,7 @@ fn read_training_data() -> Result<
 }
 
 fn print_network_score(
-    network: &CachedNetwork<CachedLayer>,
+    network: &NetworkStruct,
     epoch: i32,
     train_x: &[Array1<f32>],
     train_y: &[Array1<f32>],
@@ -121,11 +121,11 @@ fn main() {
 
     // build network and optimizer
     println!("building network and optimizer");
-    let mut network = CachedNetwork::new(vec![
-        CachedLayer::new(128, 784, Dense::new(), LeakyReLu::new()),
-        CachedLayer::new(10, 128, Dense::new(), Linear::new()),
+    let mut network = NetworkStruct::new(vec![
+        LayerStruct::new(128, 784, dense(), leaky_relu()),
+        LayerStruct::new(10, 128, dense(), linear()),
     ]);
-    let optimizer = SGD::new(CCE::new());
+    let optimizer = SGD::new(cce());
 
     // training loop
     println!("beginning training loop");

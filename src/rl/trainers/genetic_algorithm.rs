@@ -126,10 +126,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::neuron::activations::{Linear, ReLu, Sigmoid};
-    use crate::neuron::layers::StandardLayer;
-    use crate::neuron::networks::StandardFeedForwardNetwork;
-    use crate::neuron::transfers::Dense;
+    use crate::neuron::activations::{linear, relu, sigmoid};
+    use crate::neuron::layers::LayerStruct;
+    use crate::neuron::networks::NetworkStruct;
+    use crate::neuron::transfers::dense;
     use crate::rl::agents::NeuroEvolutionAgent;
     use crate::rl::environments::JumpEnvironment;
     use crate::rl::trainers::genetic_algorithm::GeneticAlgorithm;
@@ -141,11 +141,11 @@ mod tests {
         let env = JumpEnvironment::new(10);
         let env_observation_space = env.observation_space();
         let env_action_space = env.action_space();
-        let l1 = StandardLayer::new(3, env_observation_space, Dense::new(), ReLu::new());
-        let l2 = StandardLayer::new(4, 3, Dense::new(), Sigmoid::new());
-        let l3 = StandardLayer::new(env_action_space, 4, Dense::new(), Linear::new());
+        let l1 = LayerStruct::new(3, env_observation_space, dense(), relu());
+        let l2 = LayerStruct::new(4, 3, dense(), sigmoid());
+        let l3 = LayerStruct::new(env_action_space, 4, dense(), linear());
         let network_layers = vec![l1, l2, l3];
-        let mut agent = NeuroEvolutionAgent::new(StandardFeedForwardNetwork::new(network_layers));
+        let mut agent = NeuroEvolutionAgent::new(NetworkStruct::new(network_layers));
         let agent_amount = 10;
         let mutation_rate = 0.01;
         let mut learner = GeneticAlgorithm::new(agent_amount, mutation_rate);
