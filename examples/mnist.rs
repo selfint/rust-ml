@@ -65,8 +65,8 @@ fn read_training_data() -> Result<
 
 fn main() {
     // parameters
-    let epochs = 100_000_000;
-    let batch_size = 50;
+    let epochs = 10_000;
+    let batch_size = 10;
     let learning_rate = 0.05;
 
     // load data
