@@ -203,6 +203,10 @@ impl OptimizeOnce for SGD {
 }
 
 impl OptimizeBatch for SGD {
+    fn get_loss(&self) -> &LossStruct {
+        &self.loss
+    }
+
     fn optimize_batch(
         &self,
         network: &mut NetworkStruct,
