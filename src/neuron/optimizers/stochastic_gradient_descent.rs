@@ -2,7 +2,7 @@ use ndarray::prelude::*;
 
 use crate::neuron::losses::Loss;
 use crate::neuron::networks::Network;
-use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
+use crate::neuron::optimizers::Optimizer;
 
 #[derive(Clone)]
 pub struct SGD {
@@ -182,27 +182,7 @@ impl SGD {
     }
 }
 
-impl OptimizeOnce for SGD {
-    fn optimize_once(
-        &self,
-        network: &mut Network,
-        input: &Array1<f32>,
-        expected: &Array1<f32>,
-        learning_rate: f32,
-    ) {
-        let (weight_gradients, bias_gradients) = self.get_gradients(network, input, expected);
-
-        for (weights, gradients) in network.get_weights_mut().iter_mut().zip(weight_gradients) {
-            **weights = weights.clone() - gradients * learning_rate;
-        }
-
-        for (biases, gradients) in network.get_biases_mut().iter_mut().zip(bias_gradients) {
-            **biases = biases.clone() - gradients * learning_rate;
-        }
-    }
-}
-
-impl OptimizeBatch for SGD {
+impl Optimizer for SGD {
     fn get_loss(&self) -> &Loss {
         &self.loss
     }
@@ -229,9 +209,9 @@ impl OptimizeBatch for SGD {
 
 #[cfg(test)]
 mod tests {
-    use crate::neuron::activations::{leaky_relu, relu, sigmoid, softplus};
+    use crate::neuron::activations::{sigmoid, softplus, leaky_relu, relu};
     use crate::neuron::layers::Layer;
-    use crate::neuron::losses::{mse, mse_loss, sse, sse_loss};
+    use crate::neuron::losses::{sse, mse};
     use crate::neuron::networks::Network;
     use crate::neuron::transfers::dense;
 
@@ -260,7 +240,7 @@ mod tests {
             let mut cost = 0.;
             for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
                 let prediction = network.predict(&input);
-                cost += sse_loss(&prediction, &expected).sum();
+                cost += optimizer.get_loss().loss(&prediction, &expected).sum();
             }
 
             if e & 100 == 0 {
@@ -273,7 +253,7 @@ mod tests {
         let mut total_cost = 0.;
         for (input, expected) in batch_inputs.iter().zip(batch_expected.iter()) {
             let prediction = network.predict(&input);
-            let cost = sse_loss(&prediction, &expected).sum();
+            let cost = optimizer.get_loss().loss(&prediction, &expected).sum();
             eprintln!(
                 "prediction: {} expected: {}",
                 prediction.to_string(),
@@ -298,25 +278,29 @@ mod tests {
             Layer::new(6, 5, dense(), leaky_relu()),
         ]);
 
-        let input = array![1., 0.];
-        let expected = array![0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
-
         let optimizer = SGD::new(mse());
 
         for _ in 0..200 {
-            optimizer.optimize_once(&mut network, &input, &expected, 0.1);
+            let input = array![1., 0.];
+            let expected = array![0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
+
+            optimizer.optimize_once(&mut network, input, expected, 0.1);
         }
 
+        let input = array![1., 0.];
+        let expected = array![0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
         let prediction = network.predict(&input);
-        let cost = mse_loss(&prediction, &expected).sum();
+        let cost = optimizer.get_loss().loss(&prediction, &expected).sum();
+
         eprintln!(
             "prediction: {} expected: {}",
             prediction.to_string(),
             expected.to_string()
         );
+
         assert!(
-            cost <= 0.0001,
-            "optimizer failed to converge (cost: {}>0.0001)",
+            cost < 0.0001,
+            "optimizer failed to converge (cost: {}>=0.0001)",
             cost
         );
     }

@@ -1,4 +1,4 @@
-pub use optimizer::{OptimizeBatch, OptimizeOnce};
+pub use optimizer::Optimizer;
 pub use stochastic_gradient_descent::SGD;
 
 mod optimizer;

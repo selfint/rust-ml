@@ -2,12 +2,14 @@ use std::error::Error;
 
 use ndarray::prelude::*;
 
-use rust_ml::neuron::activations::{leaky_relu, linear};
-use rust_ml::neuron::layers::Layer;
-use rust_ml::neuron::losses::cce;
-use rust_ml::neuron::networks::Network;
-use rust_ml::neuron::optimizers::{OptimizeBatch, SGD};
-use rust_ml::neuron::transfers::dense;
+use rust_ml::neuron::{
+    activations::{leaky_relu, linear},
+    layers::Layer,
+    losses::cce,
+    networks::Network,
+    optimizers::{Optimizer, SGD},
+    transfers::dense,
+};
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
 const MNIST_TEST_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_test.csv";
@@ -83,7 +85,7 @@ fn main() {
 
     // training loop
     println!("beginning training loop");
-    optimizer.optimize(
+    optimizer.train(
         &mut network,
         &train,
         &test,

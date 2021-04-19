@@ -3,19 +3,11 @@ use ndarray_stats::QuantileExt;
 
 use crate::neuron::{losses::Loss, networks::Network};
 
-pub trait OptimizeOnce {
-    fn optimize_once(
-        &self,
-        network: &mut Network,
-        input: &Array1<f32>,
-        expected: &Array1<f32>,
-        learning_rate: f32,
-    );
-}
-
-pub trait OptimizeBatch {
+pub trait Optimizer {
+    /// Get optimizer Loss
     fn get_loss(&self) -> &Loss;
 
+    /// Optimize the network on batch
     fn optimize_batch(
         &self,
         network: &mut Network,
@@ -24,7 +16,22 @@ pub trait OptimizeBatch {
         learning_rate: f32,
     );
 
-    fn optimize(
+    /// Optimize the network once
+    fn optimize_once(
+        &self,
+        network: &mut Network,
+        input: Array1<f32>,
+        expected: Array1<f32>,
+        learning_rate: f32,
+    ) {
+        let batch_inputs = vec![input];
+        let batch_expected = vec![expected];
+
+        self.optimize_batch(network, &batch_inputs, &batch_expected, learning_rate);
+    }
+
+    /// Train the network
+    fn train(
         &self,
         network: &mut Network,
         train: &(Vec<Array1<f32>>, Vec<Array1<f32>>),
@@ -34,6 +41,8 @@ pub trait OptimizeBatch {
         epochs: usize,
     ) {
         let (train_x, train_y) = train;
+        assert_eq!(train_x.len(), train_y.len(), "X and Y lengths must be equal");
+
         let batches = train_x.len() / batch_size;
         for e in 0..epochs {
             // split data into batches
