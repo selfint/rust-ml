@@ -1,8 +1,8 @@
 use std::{thread, time};
 
 use rust_ml::neuron::activations::{linear, relu, sigmoid};
-use rust_ml::neuron::layers::LayerStruct;
-use rust_ml::neuron::networks::NetworkStruct;
+use rust_ml::neuron::layers::Layer;
+use rust_ml::neuron::networks::Network;
 use rust_ml::neuron::transfers::dense;
 use rust_ml::rl::agents::NeuroEvolutionAgent;
 use rust_ml::rl::environments::JumpEnvironment;
@@ -17,12 +17,12 @@ fn main() {
     let env_action_space = env.action_space();
     let env_observation_space = env.observation_space();
     let layers = vec![
-        LayerStruct::new(3, env_observation_space, dense(), relu()),
+        Layer::new(3, env_observation_space, dense(), relu()),
         // bring a bazooka to a knife fight
-        LayerStruct::new(4, 3, dense(), sigmoid()),
-        LayerStruct::new(env_action_space, 4, dense(), linear()),
+        Layer::new(4, 3, dense(), sigmoid()),
+        Layer::new(env_action_space, 4, dense(), linear()),
     ];
-    let network = NetworkStruct::new(layers);
+    let network = Network::new(layers);
 
     // build agent with network
     let mut agent = NeuroEvolutionAgent::new(network);

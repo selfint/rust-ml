@@ -1,14 +1,14 @@
 use ndarray::prelude::*;
 
-use crate::neuron::layers::LayerStruct;
+use crate::neuron::layers::Layer;
 
 #[derive(Debug, Clone)]
-pub struct NetworkStruct {
-    layers: Vec<LayerStruct>,
+pub struct Network {
+    layers: Vec<Layer>,
 }
 
-impl NetworkStruct {
-    pub fn new(layers: Vec<LayerStruct>) -> Self {
+impl Network {
+    pub fn new(layers: Vec<Layer>) -> Self {
         Self { layers }
     }
 
@@ -44,11 +44,11 @@ impl NetworkStruct {
         self.layers.iter_mut().map(|l| l.get_biases_mut()).collect()
     }
 
-    pub fn get_layers(&self) -> &Vec<LayerStruct> {
+    pub fn get_layers(&self) -> &Vec<Layer> {
         &self.layers
     }
 
-    pub fn get_layers_mut(&mut self) -> &mut Vec<LayerStruct> {
+    pub fn get_layers_mut(&mut self) -> &mut Vec<Layer> {
         &mut self.layers
     }
     pub fn predict(&self, input: &Array1<f32>) -> Array1<f32> {

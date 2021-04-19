@@ -1,4 +1,4 @@
-pub use activation::ActivationStruct;
+pub use activation::Activation;
 pub use leaky_relu::{leaky_relu, leaky_relu_activation, leaky_relu_derivative};
 pub use linear::{linear, linear_activation, linear_derivative};
 pub use relu::{relu, relu_activation, relu_derivative};

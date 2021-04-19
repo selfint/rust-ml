@@ -1,5 +1,5 @@
-pub use dense::{dense_transfer, dense};
-pub use transfer::TransferStruct;
+pub use dense::{dense, dense_transfer};
+pub use transfer::Transfer;
 
 mod dense;
 mod transfer;

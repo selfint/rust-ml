@@ -1,7 +1,7 @@
 use ndarray::prelude::*;
 use ndarray_stats::QuantileExt;
 
-use crate::neuron::losses::LossStruct;
+use crate::neuron::losses::Loss;
 
 fn softmax_activation(transfer: &Array1<f32>) -> Array1<f32> {
     let stable: Array1<f32> = transfer - *transfer.max().unwrap();
@@ -40,6 +40,6 @@ pub fn cce_derivative(prediction: &Array1<f32>, expected: &Array1<f32>) -> Array
     softmax_activation(prediction) - expected
 }
 
-pub fn cce() -> LossStruct {
-    LossStruct::new(cce_loss, cce_derivative)
+pub fn cce() -> Loss {
+    Loss::new(cce_loss, cce_derivative)
 }

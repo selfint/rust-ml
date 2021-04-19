@@ -1,5 +1,5 @@
-use crate::neuron::transfers::TransferStruct;
-use ndarray::prelude::*;
+use crate::neuron::transfers::Transfer;
+use ndarray::{Array1, Array2};
 
 pub fn dense_transfer(
     weights: &Array2<f32>,
@@ -9,6 +9,6 @@ pub fn dense_transfer(
     weights.dot(input) + biases
 }
 
-pub fn dense() -> TransferStruct {
-    TransferStruct::new(dense_transfer)
+pub fn dense() -> Transfer {
+    Transfer::new(dense_transfer)
 }

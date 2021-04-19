@@ -2,8 +2,8 @@ use ndarray::prelude::*;
 use ndarray_rand::rand::{thread_rng, Rng};
 use ndarray_stats::QuantileExt;
 
-use crate::neuron::layers::LayerStruct;
-use crate::neuron::networks::NetworkStruct;
+use crate::neuron::layers::Layer;
+use crate::neuron::networks::Network;
 use crate::rl::prelude::*;
 use crate::rl::trainers::genetic_algorithm::Evolve;
 
@@ -11,18 +11,18 @@ use crate::rl::trainers::genetic_algorithm::Evolve;
 /// `ContinuousAction`
 #[derive(Clone)]
 pub struct NeuroEvolutionAgent {
-    network: NetworkStruct,
+    network: Network,
 }
 
 impl NeuroEvolutionAgent {
-    pub fn new(network: NetworkStruct) -> Self {
+    pub fn new(network: Network) -> Self {
         Self { network }
     }
 
     fn crossover_weights(
         &self,
-        new_layer: &mut LayerStruct,
-        other_layer: &LayerStruct,
+        new_layer: &mut Layer,
+        other_layer: &Layer,
         rng: &mut ndarray_rand::rand::prelude::ThreadRng,
     ) {
         let layer_weights = new_layer.get_weights_mut();
@@ -38,8 +38,8 @@ impl NeuroEvolutionAgent {
 
     fn crossover_biases(
         &self,
-        new_layer: &mut LayerStruct,
-        other_layer: &LayerStruct,
+        new_layer: &mut Layer,
+        other_layer: &Layer,
         rng: &mut ndarray_rand::rand::prelude::ThreadRng,
     ) {
         let layer_biases = new_layer.get_biases_mut();

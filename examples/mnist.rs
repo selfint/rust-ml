@@ -3,9 +3,9 @@ use std::error::Error;
 use ndarray::prelude::*;
 
 use rust_ml::neuron::activations::{leaky_relu, linear};
-use rust_ml::neuron::layers::LayerStruct;
+use rust_ml::neuron::layers::Layer;
 use rust_ml::neuron::losses::cce;
-use rust_ml::neuron::networks::NetworkStruct;
+use rust_ml::neuron::networks::Network;
 use rust_ml::neuron::optimizers::{OptimizeBatch, SGD};
 use rust_ml::neuron::transfers::dense;
 
@@ -46,10 +46,8 @@ fn read_dataset(
 
 fn read_training_data() -> Result<
     (
-        (Vec<Array1<f32>>,
-        Vec<Array1<f32>>),
-        (Vec<Array1<f32>>,
-        Vec<Array1<f32>>),
+        (Vec<Array1<f32>>, Vec<Array1<f32>>),
+        (Vec<Array1<f32>>, Vec<Array1<f32>>),
     ),
     Box<dyn Error>,
 > {
@@ -77,15 +75,22 @@ fn main() {
 
     // build network and optimizer
     println!("building network and optimizer");
-    let mut network = NetworkStruct::new(vec![
-        LayerStruct::new(128, 784, dense(), leaky_relu()),
-        LayerStruct::new(10, 128, dense(), linear()),
+    let mut network = Network::new(vec![
+        Layer::new(128, 784, dense(), leaky_relu()),
+        Layer::new(10, 128, dense(), linear()),
     ]);
     let optimizer = SGD::new(cce());
 
     // training loop
     println!("beginning training loop");
-    optimizer.optimize(&mut network, &train, &test, learning_rate, batch_size, epochs);
+    optimizer.optimize(
+        &mut network,
+        &train,
+        &test,
+        learning_rate,
+        batch_size,
+        epochs,
+    );
 
     println!("trained network: {:?}", network);
 }

@@ -1,4 +1,4 @@
-use crate::neuron::activations::ActivationStruct;
+use crate::neuron::activations::Activation;
 use ndarray::Array1;
 
 pub fn sigmoid_activation(transfer: &Array1<f32>) -> Array1<f32> {
@@ -8,6 +8,6 @@ pub fn sigmoid_activation(transfer: &Array1<f32>) -> Array1<f32> {
 pub fn sigmoid_derivative(transfer: &Array1<f32>) -> Array1<f32> {
     sigmoid_activation(transfer).map(|s| s * (1.0 - s))
 }
-pub fn sigmoid() -> ActivationStruct {
-    ActivationStruct::new(sigmoid_activation, sigmoid_derivative)
+pub fn sigmoid() -> Activation {
+    Activation::new(sigmoid_activation, sigmoid_derivative)
 }

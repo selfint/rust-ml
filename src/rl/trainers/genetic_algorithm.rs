@@ -127,8 +127,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::neuron::activations::{linear, relu, sigmoid};
-    use crate::neuron::layers::LayerStruct;
-    use crate::neuron::networks::NetworkStruct;
+    use crate::neuron::layers::Layer;
+    use crate::neuron::networks::Network;
     use crate::neuron::transfers::dense;
     use crate::rl::agents::NeuroEvolutionAgent;
     use crate::rl::environments::JumpEnvironment;
@@ -141,11 +141,11 @@ mod tests {
         let env = JumpEnvironment::new(10);
         let env_observation_space = env.observation_space();
         let env_action_space = env.action_space();
-        let l1 = LayerStruct::new(3, env_observation_space, dense(), relu());
-        let l2 = LayerStruct::new(4, 3, dense(), sigmoid());
-        let l3 = LayerStruct::new(env_action_space, 4, dense(), linear());
+        let l1 = Layer::new(3, env_observation_space, dense(), relu());
+        let l2 = Layer::new(4, 3, dense(), sigmoid());
+        let l3 = Layer::new(env_action_space, 4, dense(), linear());
         let network_layers = vec![l1, l2, l3];
-        let mut agent = NeuroEvolutionAgent::new(NetworkStruct::new(network_layers));
+        let mut agent = NeuroEvolutionAgent::new(Network::new(network_layers));
         let agent_amount = 10;
         let mutation_rate = 0.01;
         let mut learner = GeneticAlgorithm::new(agent_amount, mutation_rate);

@@ -1,3 +1,3 @@
-pub use network::NetworkStruct;
+pub use network::Network;
 
 mod network;

@@ -1,12 +1,12 @@
 use ndarray::prelude::*;
 use ndarray_stats::QuantileExt;
 
-use crate::neuron::{losses::LossStruct, networks::NetworkStruct};
+use crate::neuron::{losses::Loss, networks::Network};
 
 pub trait OptimizeOnce {
     fn optimize_once(
         &self,
-        network: &mut NetworkStruct,
+        network: &mut Network,
         input: &Array1<f32>,
         expected: &Array1<f32>,
         learning_rate: f32,
@@ -14,11 +14,11 @@ pub trait OptimizeOnce {
 }
 
 pub trait OptimizeBatch {
-    fn get_loss(&self) -> &LossStruct;
+    fn get_loss(&self) -> &Loss;
 
     fn optimize_batch(
         &self,
-        network: &mut NetworkStruct,
+        network: &mut Network,
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
         learning_rate: f32,
@@ -26,7 +26,7 @@ pub trait OptimizeBatch {
 
     fn optimize(
         &self,
-        network: &mut NetworkStruct,
+        network: &mut Network,
         train: &(Vec<Array1<f32>>, Vec<Array1<f32>>),
         test: &(Vec<Array1<f32>>, Vec<Array1<f32>>),
         learning_rate: f32,
@@ -56,11 +56,11 @@ pub trait OptimizeBatch {
 }
 
 fn print_network_score(
-    network: &NetworkStruct,
+    network: &Network,
     epoch: usize,
     train: &(Vec<Array1<f32>>, Vec<Array1<f32>>),
     test: &(Vec<Array1<f32>>, Vec<Array1<f32>>),
-    loss: &LossStruct
+    loss: &Loss,
 ) {
     let (train_x, train_y) = train;
     let (test_x, test_y) = test;

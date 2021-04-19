@@ -1,3 +1,3 @@
-pub use layer::LayerStruct;
+pub use layer::Layer;
 
 mod layer;

@@ -1,16 +1,16 @@
 use ndarray::prelude::*;
 
-use crate::neuron::losses::LossStruct;
-use crate::neuron::networks::NetworkStruct;
+use crate::neuron::losses::Loss;
+use crate::neuron::networks::Network;
 use crate::neuron::optimizers::{OptimizeBatch, OptimizeOnce};
 
 #[derive(Clone)]
 pub struct SGD {
-    loss: LossStruct,
+    loss: Loss,
 }
 
 impl SGD {
-    pub fn new(loss: LossStruct) -> Self {
+    pub fn new(loss: Loss) -> Self {
         Self { loss }
     }
 
@@ -69,7 +69,7 @@ impl SGD {
 
     fn get_gradients(
         &self,
-        network: &mut NetworkStruct,
+        network: &mut Network,
         input: &Array1<f32>,
         expected: &Array1<f32>,
     ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>) {
@@ -119,7 +119,7 @@ impl SGD {
 
     fn get_batch_gradients(
         &self,
-        network: &mut NetworkStruct,
+        network: &mut Network,
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
     ) -> (Vec<Array2<f32>>, Vec<Array1<f32>>) {
@@ -185,7 +185,7 @@ impl SGD {
 impl OptimizeOnce for SGD {
     fn optimize_once(
         &self,
-        network: &mut NetworkStruct,
+        network: &mut Network,
         input: &Array1<f32>,
         expected: &Array1<f32>,
         learning_rate: f32,
@@ -203,13 +203,13 @@ impl OptimizeOnce for SGD {
 }
 
 impl OptimizeBatch for SGD {
-    fn get_loss(&self) -> &LossStruct {
+    fn get_loss(&self) -> &Loss {
         &self.loss
     }
 
     fn optimize_batch(
         &self,
-        network: &mut NetworkStruct,
+        network: &mut Network,
         batch_inputs: &[Array1<f32>],
         batch_expected: &[Array1<f32>],
         learning_rate: f32,
@@ -230,18 +230,18 @@ impl OptimizeBatch for SGD {
 #[cfg(test)]
 mod tests {
     use crate::neuron::activations::{leaky_relu, relu, sigmoid, softplus};
-    use crate::neuron::layers::LayerStruct;
+    use crate::neuron::layers::Layer;
     use crate::neuron::losses::{mse, mse_loss, sse, sse_loss};
-    use crate::neuron::networks::NetworkStruct;
+    use crate::neuron::networks::Network;
     use crate::neuron::transfers::dense;
 
     use super::*;
 
     #[test]
     fn test_sgd_optimize_batch_sin_convergence() {
-        let mut network = NetworkStruct::new(vec![
-            LayerStruct::new(3, 1, dense(), sigmoid()),
-            LayerStruct::new(1, 3, dense(), sigmoid()),
+        let mut network = Network::new(vec![
+            Layer::new(3, 1, dense(), sigmoid()),
+            Layer::new(1, 3, dense(), sigmoid()),
         ]);
 
         let batch_inputs: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
@@ -291,11 +291,11 @@ mod tests {
 
     #[test]
     fn test_sgd_optimize_once_convergence() {
-        let mut network = NetworkStruct::new(vec![
-            LayerStruct::new(3, 2, dense(), softplus()),
-            LayerStruct::new(4, 3, dense(), relu()),
-            LayerStruct::new(5, 4, dense(), sigmoid()),
-            LayerStruct::new(6, 5, dense(), leaky_relu()),
+        let mut network = Network::new(vec![
+            Layer::new(3, 2, dense(), softplus()),
+            Layer::new(4, 3, dense(), relu()),
+            Layer::new(5, 4, dense(), sigmoid()),
+            Layer::new(6, 5, dense(), leaky_relu()),
         ]);
 
         let input = array![1., 0.];
