@@ -51,6 +51,7 @@ impl Network {
     pub fn get_layers_mut(&mut self) -> &mut Vec<Layer> {
         &mut self.layers
     }
+
     pub fn predict(&self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
             .iter()
@@ -58,6 +59,7 @@ impl Network {
                 layer.forward(&prev_layer_output)
             })
     }
+
     pub fn predict_cached(&mut self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
             .iter_mut()
