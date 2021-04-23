@@ -41,7 +41,11 @@ pub trait Optimizer {
         epochs: usize,
     ) {
         let (train_x, train_y) = train;
-        assert_eq!(train_x.len(), train_y.len(), "X and Y lengths must be equal");
+        assert_eq!(
+            train_x.len(),
+            train_y.len(),
+            "X and Y lengths must be equal"
+        );
 
         let batches = train_x.len() / batch_size;
         for e in 0..epochs {

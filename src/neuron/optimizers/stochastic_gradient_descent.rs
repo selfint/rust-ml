@@ -209,9 +209,9 @@ impl Optimizer for SGD {
 
 #[cfg(test)]
 mod tests {
-    use crate::neuron::activations::{sigmoid, softplus, leaky_relu, relu};
+    use crate::neuron::activations::{leaky_relu, relu, sigmoid, softplus};
     use crate::neuron::layers::Layer;
-    use crate::neuron::losses::{sse, mse};
+    use crate::neuron::losses::{mse, sse};
     use crate::neuron::networks::Network;
     use crate::neuron::transfers::dense;
 
