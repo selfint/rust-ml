@@ -76,20 +76,20 @@ impl SGD {
         let mut network_weights_gradients = vec![];
         let mut network_biases_gradients = vec![];
 
-        let prediction = network.predict_cached(input);
+        let prediction = network.predict_training(input);
 
         // derivatives of the loss with respect to the last layers activation
         let mut dl_da = Box::new(self.loss.derivative(&prediction, expected));
 
         for layer in network.get_layers().iter().rev() {
             // derivatives of the activations with respect to the transfers
-            // NOTE: unwrap is safe since we called `predict_cached`
+            // NOTE: unwrap is safe since we called `predict_training`
             let da_dt = layer.apply_derivation(layer.get_transfer().unwrap());
 
             // derivatives of the transfers with respect to the weights - these are
             // the activations of the previous layer, which is also the input to the
             // current layer
-            // NOTE: unwrap is safe since we called `predict_cached`
+            // NOTE: unwrap is safe since we called `predict_training`
             let dt_dw = layer.get_input().unwrap();
 
             // derivatives of the transfers with respect to the previous layer's

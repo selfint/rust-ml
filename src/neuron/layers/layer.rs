@@ -105,7 +105,7 @@ impl Layer {
         self.apply_activation(&self.apply_transfer(inputs))
     }
 
-    pub fn forward_cached(&mut self, input: &Array1<f32>) -> Array1<f32> {
+    pub fn forward_training(&mut self, input: &Array1<f32>) -> Array1<f32> {
         let transfer = self.apply_transfer(input);
         let activation = self.apply_activation(&transfer);
 

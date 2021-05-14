@@ -64,11 +64,11 @@ impl Network {
             })
     }
 
-    pub fn predict_cached(&mut self, input: &Array1<f32>) -> Array1<f32> {
+    pub fn predict_training(&mut self, input: &Array1<f32>) -> Array1<f32> {
         self.layers
             .iter_mut()
             .fold(input.clone(), |prev_layer_output, layer| {
-                layer.forward_cached(&prev_layer_output)
+                layer.forward_training(&prev_layer_output)
             })
     }
 }
