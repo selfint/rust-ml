@@ -16,6 +16,10 @@ impl Network {
         self.layers.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn shape(&self) -> Vec<usize> {
         let mut shape = vec![self.layers[0].input_size()];
         for layer in self.layers.iter() {
