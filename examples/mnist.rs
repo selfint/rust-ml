@@ -5,12 +5,11 @@ use ndarray::prelude::*;
 use rust_ml::dropout;
 
 use rust_ml::neuron::{
-    activations::{leaky_relu, linear},
+    activations::{relu, linear},
     layers::Layer,
     losses::cce,
     networks::Network,
     optimizers::{Optimizer, SGD},
-    transfers::dense,
 };
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
@@ -80,7 +79,8 @@ fn main() {
     // build network and optimizer
     println!("building network and optimizer");
     let mut network = Network::new(vec![
-        Layer::new(128, 784, dense(), leaky_relu()),
+        Layer::new(128, 784, dropout!(0.2), relu()),
+        Layer::new(128, 128, dropout!(0.5), relu()),
         Layer::new(10, 128, dropout!(0.5), linear()),
     ]);
     let optimizer = SGD::new(cce());
