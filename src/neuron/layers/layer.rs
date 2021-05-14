@@ -88,9 +88,14 @@ impl Layer {
         self.activation_value = Some(activation);
     }
 
-    pub fn apply_transfer(&self, inputs: &Array1<f32>) -> Array1<f32> {
+    pub fn apply_transfer_train(&self, inputs: &Array1<f32>) -> Array1<f32> {
         self.transfer_fn
-            .transfer(&self.weights, &self.biases, inputs)
+            .transfer_train(&self.weights, &self.biases, inputs)
+    }
+
+    pub fn apply_transfer_test(&self, inputs: &Array1<f32>) -> Array1<f32> {
+        self.transfer_fn
+            .transfer_test(&self.weights, &self.biases, inputs)
     }
 
     pub fn apply_activation(&self, transfer: &Array1<f32>) -> Array1<f32> {
@@ -102,11 +107,11 @@ impl Layer {
     }
 
     pub fn forward(&self, inputs: &Array1<f32>) -> Array1<f32> {
-        self.apply_activation(&self.apply_transfer(inputs))
+        self.apply_activation(&self.apply_transfer_test(inputs))
     }
 
     pub fn forward_training(&mut self, input: &Array1<f32>) -> Array1<f32> {
-        let transfer = self.apply_transfer(input);
+        let transfer = self.apply_transfer_train(input);
         let activation = self.apply_activation(&transfer);
 
         self.set_input(input.clone());

@@ -10,5 +10,5 @@ pub fn dense_transfer(
 }
 
 pub fn dense() -> Transfer {
-    Transfer::new(dense_transfer)
+    Transfer::new(dense_transfer, dense_transfer)
 }

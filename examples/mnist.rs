@@ -2,6 +2,8 @@ use std::error::Error;
 
 use ndarray::prelude::*;
 
+use rust_ml::dropout;
+
 use rust_ml::neuron::{
     activations::{leaky_relu, linear},
     layers::Layer,
@@ -79,7 +81,7 @@ fn main() {
     println!("building network and optimizer");
     let mut network = Network::new(vec![
         Layer::new(128, 784, dense(), leaky_relu()),
-        Layer::new(10, 128, dense(), linear()),
+        Layer::new(10, 128, dropout!(0.5), linear()),
     ]);
     let optimizer = SGD::new(cce());
 

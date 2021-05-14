@@ -6,7 +6,8 @@ pub type TransferFn = fn(&Array2<f32>, &Array1<f32>, &Array1<f32>) -> Array1<f32
 
 #[derive(Copy, Clone)]
 pub struct Transfer {
-    transfer_fn: TransferFn,
+    train_transfer_fn: TransferFn,
+    test_transfer_fn: TransferFn,
 }
 
 impl Debug for Transfer {
@@ -16,16 +17,25 @@ impl Debug for Transfer {
 }
 
 impl Transfer {
-    pub fn new(transfer_fn: TransferFn) -> Self {
-        Self { transfer_fn }
+    pub fn new(train_transfer_fn: TransferFn, test_transfer_fn: TransferFn) -> Self {
+        Self { train_transfer_fn, test_transfer_fn }
     }
 
-    pub fn transfer(
+    pub fn transfer_train(
         &self,
         weights: &Array2<f32>,
         biases: &Array1<f32>,
         inputs: &Array1<f32>,
     ) -> Array1<f32> {
-        (self.transfer_fn)(weights, biases, inputs)
+        (self.train_transfer_fn)(weights, biases, inputs)
+    }
+
+    pub fn transfer_test(
+        &self,
+        weights: &Array2<f32>,
+        biases: &Array1<f32>,
+        inputs: &Array1<f32>,
+    ) -> Array1<f32> {
+        (self.test_transfer_fn)(weights, biases, inputs)
     }
 }
