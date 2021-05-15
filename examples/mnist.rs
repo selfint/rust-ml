@@ -2,15 +2,13 @@ use std::error::Error;
 
 use ndarray::prelude::*;
 
-use rust_ml::dropout;
-
 use rust_ml::neuron::{
     activations::{relu, linear},
     layers::Layer,
     losses::cce,
     networks::Network,
     optimizers::{Optimizer, SGD},
-    transfers::dense
+    transfers::{dense, dropout}
 };
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
