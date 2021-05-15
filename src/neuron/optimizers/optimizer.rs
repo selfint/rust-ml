@@ -63,7 +63,9 @@ pub trait Optimizer {
                 self.optimize_batch(network, batch_inputs, batch_expected, learning_rate);
             }
 
-            print_network_score(&network, e, train, test, self.get_loss());
+            if e % 3 == 0 {
+                print_network_score(&network, e, train, test, self.get_loss());
+            }
         }
     }
 }
