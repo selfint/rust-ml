@@ -141,9 +141,9 @@ mod tests {
         let env = JumpEnvironment::new(10);
         let env_observation_space = env.observation_space();
         let env_action_space = env.action_space();
-        let l1 = Layer::new(3, env_observation_space, dense(), relu());
-        let l2 = Layer::new(4, 3, dense(), sigmoid());
-        let l3 = Layer::new(env_action_space, 4, dense(), linear());
+        let l1 = Layer::new(3, env_observation_space, dense(None), relu());
+        let l2 = Layer::new(4, 3, dense(None), sigmoid());
+        let l3 = Layer::new(env_action_space, 4, dense(None), linear());
         let network_layers = vec![l1, l2, l3];
         let mut agent = NeuroEvolutionAgent::new(Network::new(network_layers));
         let agent_amount = 10;

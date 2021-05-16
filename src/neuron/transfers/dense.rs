@@ -9,6 +9,6 @@ pub fn dense_transfer(
     weights.dot(input) + biases
 }
 
-pub fn dense() -> Transfer {
-    Transfer::new(dense_transfer, dense_transfer)
+pub fn dense(drop_rate: Option<f32>) -> Transfer {
+    Transfer::new(dense_transfer, dense_transfer, drop_rate)
 }

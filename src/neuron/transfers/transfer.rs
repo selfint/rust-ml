@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Formatter};
 
 use ndarray::{Array1, Array2};
+use ndarray_rand::RandomExt;
 
 pub type TransferFn = fn(&Array2<f32>, &Array1<f32>, &Array1<f32>) -> Array1<f32>;
 
@@ -8,6 +9,7 @@ pub type TransferFn = fn(&Array2<f32>, &Array1<f32>, &Array1<f32>) -> Array1<f32
 pub struct Transfer {
     train_transfer_fn: TransferFn,
     test_transfer_fn: TransferFn,
+    keep_rate: Option<f32>,
 }
 
 impl Debug for Transfer {
@@ -17,8 +19,35 @@ impl Debug for Transfer {
 }
 
 impl Transfer {
-    pub fn new(train_transfer_fn: TransferFn, test_transfer_fn: TransferFn) -> Self {
-        Self { train_transfer_fn, test_transfer_fn }
+    pub fn new(
+        train_transfer_fn: TransferFn,
+        test_transfer_fn: TransferFn,
+        drop_rate: Option<f32>,
+    ) -> Self {
+        let keep_rate = if let Some(drop_rate) = drop_rate {
+            Some(1.0 - drop_rate)
+        } else {
+            None
+        };
+
+        Self {
+            train_transfer_fn,
+            test_transfer_fn,
+            keep_rate,
+        }
+    }
+
+    fn get_dropout_mask(&self, size: usize, keep_rate: f64) -> Array1<f32> {
+        let distribution = ndarray_rand::rand_distr::Bernoulli::new(keep_rate)
+            .expect("failed to create dropout transfer");
+
+        let dropout_mask = ndarray::Array1::random(size, distribution);
+        let dropout_array = dropout_mask
+            .iter()
+            .map(|&v| if v { 1.0 } else { 0.0 })
+            .collect::<ndarray::Array1<f32>>();
+
+        dropout_array
     }
 
     pub fn transfer_train(
@@ -27,7 +56,13 @@ impl Transfer {
         biases: &Array1<f32>,
         inputs: &Array1<f32>,
     ) -> Array1<f32> {
-        (self.train_transfer_fn)(weights, biases, inputs)
+        if let Some(keep_rate) = self.keep_rate {
+            let dropout_mask = self.get_dropout_mask(inputs.len(), keep_rate as f64);
+
+            (self.train_transfer_fn)(weights, biases, &(dropout_mask * inputs))
+        } else {
+            (self.train_transfer_fn)(weights, biases, &inputs)
+        }
     }
 
     pub fn transfer_test(
@@ -36,6 +71,10 @@ impl Transfer {
         biases: &Array1<f32>,
         inputs: &Array1<f32>,
     ) -> Array1<f32> {
-        (self.test_transfer_fn)(weights, biases, inputs)
+        if let Some(keep_rate) = self.keep_rate {
+            (self.test_transfer_fn)(&(weights * keep_rate), biases, inputs)
+        } else {
+            (self.test_transfer_fn)(weights, biases, inputs)
+        }
     }
 }

@@ -132,14 +132,14 @@ mod tests {
 
     #[test]
     fn test_layer() {
-        let layer = Layer::new(3, 2, dense(), linear());
+        let layer = Layer::new(3, 2, dense(None), linear());
         let output = layer.forward(&arr1(&[1., 0.]));
         assert_eq!(output.len(), 3);
     }
 
     #[test]
     fn test_sizes() {
-        let layer = Layer::new(3, 2, dense(), linear());
+        let layer = Layer::new(3, 2, dense(None), linear());
         assert_eq!(layer.input_size(), 2);
         assert_eq!(layer.output_size(), 3);
     }

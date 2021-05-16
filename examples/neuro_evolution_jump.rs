@@ -17,10 +17,10 @@ fn main() {
     let env_action_space = env.action_space();
     let env_observation_space = env.observation_space();
     let layers = vec![
-        Layer::new(3, env_observation_space, dense(), relu()),
+        Layer::new(3, env_observation_space, dense(None), relu()),
         // bring a bazooka to a knife fight
-        Layer::new(4, 3, dense(), sigmoid()),
-        Layer::new(env_action_space, 4, dense(), linear()),
+        Layer::new(4, 3, dense(None), sigmoid()),
+        Layer::new(env_action_space, 4, dense(None), linear()),
     ];
     let network = Network::new(layers);
 

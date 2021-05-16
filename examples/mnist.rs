@@ -8,7 +8,7 @@ use rust_ml::neuron::{
     losses::cce,
     networks::Network,
     optimizers::{Optimizer, SGD},
-    transfers::{dense, dropout}
+    transfers::dense
 };
 
 const MNIST_TRAIN_PATH: &str = "/home/tom/Documents/Datasets/MNIST/mnist_train.csv";
@@ -78,8 +78,8 @@ fn main() {
     // build network and optimizer
     println!("building network and optimizer");
     let mut network = Network::new(vec![
-        Layer::new(128, 784, dense(), relu()),
-        Layer::new(10, 128, dropout!(0.5), linear()),
+        Layer::new(1024, 784, dense(Some(0.2)), relu()),
+        Layer::new(10, 1024, dense(Some(0.5)), linear()),
     ]);
     let optimizer = SGD::new(cce());
 

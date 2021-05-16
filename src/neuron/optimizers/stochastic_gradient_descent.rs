@@ -220,8 +220,8 @@ mod tests {
     #[test]
     fn test_sgd_optimize_batch_sin_convergence() {
         let mut network = Network::new(vec![
-            Layer::new(3, 1, dense(), sigmoid()),
-            Layer::new(1, 3, dense(), sigmoid()),
+            Layer::new(3, 1, dense(None), sigmoid()),
+            Layer::new(1, 3, dense(None), sigmoid()),
         ]);
 
         let batch_inputs: Vec<Array1<f32>> = Array1::linspace(0.1, 0.9, 100)
@@ -272,10 +272,10 @@ mod tests {
     #[test]
     fn test_sgd_optimize_once_convergence() {
         let mut network = Network::new(vec![
-            Layer::new(3, 2, dense(), softplus()),
-            Layer::new(4, 3, dense(), relu()),
-            Layer::new(5, 4, dense(), sigmoid()),
-            Layer::new(6, 5, dense(), leaky_relu()),
+            Layer::new(3, 2, dense(None), softplus()),
+            Layer::new(4, 3, dense(None), relu()),
+            Layer::new(5, 4, dense(None), sigmoid()),
+            Layer::new(6, 5, dense(None), leaky_relu()),
         ]);
 
         let optimizer = SGD::new(mse());
