@@ -7,8 +7,7 @@ pub type TransferFn = fn(&Array2<f32>, &Array1<f32>, &Array1<f32>) -> Array1<f32
 
 #[derive(Copy, Clone)]
 pub struct Transfer {
-    train_transfer_fn: TransferFn,
-    test_transfer_fn: TransferFn,
+    transfer_fn: TransferFn,
     keep_rate: Option<f32>,
 }
 
@@ -20,8 +19,7 @@ impl Debug for Transfer {
 
 impl Transfer {
     pub fn new(
-        train_transfer_fn: TransferFn,
-        test_transfer_fn: TransferFn,
+        transfer_fn: TransferFn,
         drop_rate: Option<f32>,
     ) -> Self {
         let keep_rate = if let Some(drop_rate) = drop_rate {
@@ -31,8 +29,7 @@ impl Transfer {
         };
 
         Self {
-            train_transfer_fn,
-            test_transfer_fn,
+            transfer_fn,
             keep_rate,
         }
     }
@@ -59,9 +56,9 @@ impl Transfer {
         if let Some(keep_rate) = self.keep_rate {
             let dropout_mask = self.get_dropout_mask(inputs.len(), keep_rate as f64);
 
-            (self.train_transfer_fn)(weights, biases, &(dropout_mask * inputs))
+            (self.transfer_fn)(weights, biases, &(dropout_mask * inputs))
         } else {
-            (self.train_transfer_fn)(weights, biases, &inputs)
+            (self.transfer_fn)(weights, biases, &inputs)
         }
     }
 
@@ -72,9 +69,9 @@ impl Transfer {
         inputs: &Array1<f32>,
     ) -> Array1<f32> {
         if let Some(keep_rate) = self.keep_rate {
-            (self.test_transfer_fn)(&(weights * keep_rate), biases, inputs)
+            (self.transfer_fn)(&(weights * keep_rate), biases, inputs)
         } else {
-            (self.test_transfer_fn)(weights, biases, inputs)
+            (self.transfer_fn)(weights, biases, inputs)
         }
     }
 }
