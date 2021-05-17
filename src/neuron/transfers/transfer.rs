@@ -1,7 +1,5 @@
-use std::fmt::{Debug, Formatter};
-
 use ndarray::{Array1, Array2};
-use ndarray_rand::RandomExt;
+use ndarray_rand::{RandomExt, rand_distr::Bernoulli};
 
 pub type TransferFn = fn(&Array2<f32>, &Array1<f32>, &Array1<f32>) -> Array1<f32>;
 
@@ -12,8 +10,8 @@ pub struct Transfer {
     keep_rate: Option<f32>,
 }
 
-impl Debug for Transfer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Debug for Transfer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(self.name).finish()
     }
 }
@@ -38,14 +36,14 @@ impl Transfer {
     }
 
     fn get_dropout_mask(&self, size: usize, keep_rate: f64) -> Array1<f32> {
-        let distribution = ndarray_rand::rand_distr::Bernoulli::new(keep_rate)
+        let distribution = Bernoulli::new(keep_rate)
             .expect("failed to create dropout transfer");
 
-        let dropout_mask = ndarray::Array1::random(size, distribution);
+        let dropout_mask = Array1::random(size, distribution);
         let dropout_array = dropout_mask
             .iter()
             .map(|&v| if v { 1.0 } else { 0.0 })
-            .collect::<ndarray::Array1<f32>>();
+            .collect();
 
         dropout_array
     }
