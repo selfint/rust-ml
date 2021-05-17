@@ -7,18 +7,20 @@ pub type TransferFn = fn(&Array2<f32>, &Array1<f32>, &Array1<f32>) -> Array1<f32
 
 #[derive(Copy, Clone)]
 pub struct Transfer {
+    name: &'static str,
     transfer_fn: TransferFn,
     keep_rate: Option<f32>,
 }
 
 impl Debug for Transfer {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Transfer").finish()
+        f.debug_struct(self.name).finish()
     }
 }
 
 impl Transfer {
     pub fn new(
+        name: &'static str,
         transfer_fn: TransferFn,
         drop_rate: Option<f32>,
     ) -> Self {
@@ -29,6 +31,7 @@ impl Transfer {
         };
 
         Self {
+            name,
             transfer_fn,
             keep_rate,
         }
